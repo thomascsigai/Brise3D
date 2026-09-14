@@ -12,11 +12,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Change option here if you want to build or not the tests by default
 option(BRISE_BUILD_TESTS "Build the Brise unit tests" ON)
 
-# PForceGen, PContact, PLinks and World are still the 2D sources (see #2);
-# they join the library once translated to Vec3.
 add_library(
 	brise STATIC
 	src/Particle.cpp
+	src/PForceGen.cpp
 	src/Vec3.cpp
 )
 

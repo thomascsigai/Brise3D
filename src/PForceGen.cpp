@@ -1,5 +1,6 @@
 #include <Brise/PForceGen.h>
 #include <Brise/BriseAssert.h>
+#include <algorithm>
 
 namespace Brise {
 	void ParticleForceRegistry::Add(Particle* particle, ParticleForceGenerator* fg) {
@@ -36,7 +37,7 @@ namespace Brise {
 
 	// GRAVITY
 
-	ParticleGravity::ParticleGravity(const Vec2& gravityForce) 
+	ParticleGravity::ParticleGravity(const Vec3& gravityForce) 
 	: gravity(gravityForce) {}
 
 	void ParticleGravity::UpdateForce(Particle* particle, float duration) {
@@ -51,7 +52,7 @@ namespace Brise {
 		: other(other), springConstant(springConstant), restLength(restLength) {}
 
 	void ParticleSpring::UpdateForce(Particle* particle, float duration) {
-		Vec2 force = particle->position - other->position;
+		Vec3 force = particle->position - other->position;
 
 		float length = Magnitude(force);
 		if (length <= 0.0001f) return;
@@ -69,18 +70,18 @@ namespace Brise {
 
 	// ANCHORED SPRING
 
-	AnchoredParticleSpring::AnchoredParticleSpring(Vec2 anchor, float springConstant, float restLength)
+	AnchoredParticleSpring::AnchoredParticleSpring(Vec3 anchor, float springConstant, float restLength)
 		: anchor(anchor), springConstant(springConstant), restLength(restLength) {}
 
 	void AnchoredParticleSpring::UpdateForce(Particle* particle, float duration) {
-		Vec2 delta = particle->position - anchor;
+		Vec3 delta = particle->position - anchor;
 
 		float length = Magnitude(delta);
 		if (length <= 0.0001f) return;
 
 		float displacement = length - restLength;
 
-		Vec2 force = delta / length;
+		Vec3 force = delta / length;
 		force *= -springConstant * displacement;
 
 		particle->AddForce(force);
@@ -92,7 +93,7 @@ namespace Brise {
 		: other(other), springConstant(springConstant), restLength(restLength) { }
 
 	void ParticleBungee::UpdateForce(Particle* particle, float duration) {
-		Vec2 delta = particle->position - other->position;
+		Vec3 delta = particle->position - other->position;
 
 		float length = Magnitude(delta);
 		if (length <= 0.0001f) return;
@@ -102,7 +103,7 @@ namespace Brise {
 
 		float displacement = length - restLength;
 
-		Vec2 force = delta / length;
+		Vec3 force = delta / length;
 		force *= -springConstant * displacement;
 
 		particle->AddForce(force);
@@ -119,7 +120,7 @@ namespace Brise {
 
 		// Checks if out of water
 		if (depth >= waterHeight + maxDepth) return;
-		Vec2 force = { 0, 0 };
+		Vec3 force = { 0, 0, 0 };
 
 		// Checks if you're at max depth
 		if (depth <= waterHeight - maxDepth) {

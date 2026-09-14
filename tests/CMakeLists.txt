@@ -12,6 +12,7 @@ add_executable(
 	main.cpp
 	Vec3Tests.cpp
 	ParticleTests.cpp
+	ForceGenTests.cpp
 )
 
 target_link_libraries(brise_tests PRIVATE brise doctest::doctest)

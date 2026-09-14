@@ -32,10 +32,10 @@ namespace Brise {
 	// Gravity Generator
 	class ParticleGravity : public ParticleForceGenerator {
 	private:
-		Vec2 gravity; // Gravity acceleration (m/s^2)
+		Vec3 gravity; // Gravity acceleration (m/s^2)
 
 	public: 
-		ParticleGravity(const Vec2& gravityForce);
+		ParticleGravity(const Vec3& gravityForce);
 
 		virtual void UpdateForce(Particle* particle, float duration) override;
 	};
@@ -56,12 +56,12 @@ namespace Brise {
 	// Anchored Spring force generator
 	class AnchoredParticleSpring : public ParticleForceGenerator {
 	private:
-		Vec2 anchor;
+		Vec3 anchor;
 		float springConstant;
 		float restLength;
 
 	public:
-		AnchoredParticleSpring(Vec2 anchor, float springConstant, float restLength);
+		AnchoredParticleSpring(Vec3 anchor, float springConstant, float restLength);
 
 		virtual void UpdateForce(Particle* particle, float duration) override;
 	};
