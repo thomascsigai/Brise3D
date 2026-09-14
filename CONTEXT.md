@@ -91,3 +91,11 @@ _Avoid_: Sandbox, app, client, frontend
 **Demo**:
 A scene defined in the viewer that exercises one feature of the engine, selectable from the viewer.
 _Avoid_: Example, sample, test scene
+
+**Frame**:
+One browser animation frame of the viewer: it advances the world by zero or more steps, then renders it.
+_Avoid_: Tick, step, render pass
+
+**Profiler**:
+The panel of the viewer that shows how long a frame, the engine and the rendering take, and the engine's per-step counters.
+_Avoid_: Stats, HUD, metrics, perf panel, debug overlay
