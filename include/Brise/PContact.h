@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Brise/Particle.h>
-#include <Brise/Vec2.h>
+#include <Brise/Vec3.h>
 
 #include <limits>
 #include <vector>
@@ -16,7 +16,7 @@ namespace Brise {
 		Particle* particle[2];
 
 		float restitution;
-		Vec2 contactNormal;
+		Vec3 contactNormal;
 		float penetration;
 
 	public:

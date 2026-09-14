@@ -13,6 +13,7 @@ add_executable(
 	Vec3Tests.cpp
 	ParticleTests.cpp
 	ForceGenTests.cpp
+	ContactTests.cpp
 )
 
 target_link_libraries(brise_tests PRIVATE brise doctest::doctest)

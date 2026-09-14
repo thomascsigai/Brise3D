@@ -7,7 +7,7 @@ namespace Brise {
 	}
 
 	float ParticleContact::CalculateSeparatingVelocity() const {
-		Vec2 relativeVelocity = particle[0]->velocity;
+		Vec3 relativeVelocity = particle[0]->velocity;
 		if (particle[1]) relativeVelocity -= particle[1]->velocity;
 		return Dot(relativeVelocity, contactNormal);
 	}
@@ -22,7 +22,7 @@ namespace Brise {
 		float newSepVelocity = -separatingVelocity * restitution;
 
 		// Checks the velocity buildup due to acceleration only
-		Vec2 accCausedVelocity = particle[0]->acceleration;
+		Vec3 accCausedVelocity = particle[0]->acceleration;
 		if (particle[1]) accCausedVelocity -= particle[1]->acceleration;
 		float accCausedSepVelocity = Dot(accCausedVelocity, contactNormal) * duration;
 
@@ -44,7 +44,7 @@ namespace Brise {
 
 		// Calculate the impulse
 		float impulse = deltaVelocity / totalInverseMass;
-		Vec2 impulsePerIMass = contactNormal * impulse;
+		Vec3 impulsePerIMass = contactNormal * impulse;
 
 		// Apply impulse
 		particle[0]->velocity += impulsePerIMass * particle[0]->GetInverseMass();
@@ -66,15 +66,15 @@ namespace Brise {
 
 		// Calculate the movement amounts
 		float percent = 0.8f;
-		Vec2 movePerIMass = contactNormal * ((penetration * percent) / totalInverseMass);
+		Vec3 movePerIMass = contactNormal * ((penetration * percent) / totalInverseMass);
 
-		Vec2 particleMovement0, particleMovement1;
+		Vec3 particleMovement0, particleMovement1;
 		particleMovement0 = movePerIMass * particle[0]->GetInverseMass();
 		if (particle[1]) {
 			particleMovement1 = movePerIMass * (-particle[1]->GetInverseMass());
 		}
 		else {
-			particleMovement1 = { 0, 0 };
+			particleMovement1 = { 0, 0, 0 };
 		}
 
 		// Apply penetration resolution
