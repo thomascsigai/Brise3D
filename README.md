@@ -17,8 +17,9 @@ The port from 2D is in progress. Done so far:
 - **`World`** — fixed-step simulation container that owns its particles, force generators, links and contact generators
 - **Flat C API** — `extern "C"` functions addressing particles by index and links by id, compiled to WebAssembly with Emscripten for the web viewer (see [ADR-0001](docs/adr/0001-flat-c-api-over-wasm.md))
 - **Unit tests** — [doctest](https://github.com/doctest/doctest), run through `ctest`
+- **Web viewer** — Vite + TypeScript + [Three.js](https://threejs.org/) in [web/](web/), with the **Particles**, **Ballistics** and **Springs** demos
 
-Still to come, tracked as GitHub issues: the web viewer (Three.js) with the demos.
+More demos are tracked as GitHub issues.
 
 ## Getting Started
 
@@ -87,6 +88,20 @@ brise._world_update(world, 1 / 60);
 console.log(positions[3 * p + 1]);                      // y of particle p
 ```
 
+### Web viewer
+
+The viewer in [web/](web/) needs the WebAssembly build above (it loads `web/public/brise.js` and `brise.wasm`) and Node 20+:
+
+```bash
+cd web
+npm install
+npm run dev        # Vite dev server with hot reload
+npm test           # Vitest: the Engine wrapper against the real brise.wasm, and the frame loop
+npm run build      # typecheck + static site in web/dist/, deployable as-is (relative base)
+```
+
+Pick a demo from the overlay (or keys 1–0), Pause (Space), ×2 (Tab) and Reset (R); each demo adds its own actions as buttons with a key. Demos live in [web/src/demos/](web/src/demos/) and implement the `Demo` interface: `create(engine, scene)` builds a new world through the [Engine](web/src/engine.ts) wrapper, `update()` runs after every `world_update`, `dispose()` removes the demo's scenery. Reset destroys and recreates the world, since particles are never removed.
+
 ### Integrate into your project
 
 Add Brise3D as a subdirectory in your `CMakeLists.txt`:
@@ -137,7 +152,16 @@ include/Brise/
 ├── World.h         # Main simulation container
 └── CApi.h          # Flat C API over World, the WebAssembly surface
 tests/              # doctest unit tests
-web/public/         # brise.js + brise.wasm, written by the WebAssembly build
+web/
+├── public/         # brise.js + brise.wasm, written by the WebAssembly build (+ hand-written brise.d.ts)
+├── src/
+│   ├── engine.ts   # Engine: thin wrapper over the C API, positions()/radii() views
+│   ├── loop.ts     # Frame-time policy: clamp, pause, x2
+│   ├── render.ts   # Particle spheres (InstancedMesh), link lines, ground
+│   ├── overlay.ts  # Demo select, Pause / x2 / Reset, demo actions, keyboard
+│   ├── main.ts     # Viewer bootstrap and frame loop
+│   └── demos/      # One file per demo
+└── tests/          # Vitest, run under Node against the real brise.wasm
 ```
 
 See [CONTEXT.md](CONTEXT.md) for the project's vocabulary and [docs/adr/](docs/adr/) for design decisions.

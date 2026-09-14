@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Brise3D</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="overlay">
+      <div class="row">
+        <select id="demo" aria-label="Demo"></select>
+        <button id="pause">Pause</button>
+        <button id="fast">×2</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="row" id="actions"></div>
+      <div id="hint"></div>
+    </div>
+    <div id="status" hidden>Loading engine…</div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
