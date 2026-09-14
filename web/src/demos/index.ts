@@ -7,6 +7,7 @@ import { CollisionDemo } from './collision';
 import { CubeDemo } from './cube';
 import type { Demo } from './demo';
 import { ParticlesDemo } from './particles';
+import { PileDemo } from './pile';
 import { RestingDemo } from './resting';
 import { RodsDemo } from './rods';
 import { SpringsDemo } from './springs';
@@ -24,4 +25,5 @@ export const demos: Demo[] = [
   new CubeDemo(),
   new BridgeDemo(),
   new ClothDemo(),
+  new PileDemo(),
 ];

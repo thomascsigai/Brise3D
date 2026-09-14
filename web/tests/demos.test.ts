@@ -8,6 +8,7 @@ import { CollisionDemo } from '../src/demos/collision';
 import { CubeDemo, EDGE } from '../src/demos/cube';
 import type { Demo } from '../src/demos/demo';
 import { demos } from '../src/demos';
+import { BATCH, CAPACITY, PileDemo } from '../src/demos/pile';
 import { RestingDemo } from '../src/demos/resting';
 import { RodsDemo } from '../src/demos/rods';
 import { Engine } from '../src/engine';
@@ -52,6 +53,7 @@ describe('demos', () => {
       'Cube',
       'Bridge',
       'Cloth',
+      'Pile',
     ]);
   });
 
@@ -274,6 +276,38 @@ describe('Cloth', () => {
     expect(Math.abs(position(corner).z - before)).toBeGreaterThan(0.1);
     run(4);
     expectRodsToHold();
+    demo.dispose();
+  });
+});
+
+describe('Pile', () => {
+  test('+100 grows the pile in batches and the hint shows the count', () => {
+    const demo = new PileDemo();
+    demo.create(engine, new THREE.Scene());
+    expect(engine.particleCount()).toBe(BATCH);
+    expect(demo.hint).toContain(`${BATCH} / ${CAPACITY} particles`);
+    run(3);
+    // A mound, not a single layer: some particle rests on others, more than
+    // two radii up (the engine has no friction, so this takes the funnel)
+    const heights = Array.from({ length: BATCH }, (_, i) => position(i).y);
+    expect(Math.max(...heights)).toBeGreaterThan(0.4);
+    expect(Math.min(...heights)).toBeGreaterThan(0);
+
+    action(demo, '+100');
+
+    expect(engine.particleCount()).toBe(2 * BATCH);
+    expect(demo.hint).toContain(`${2 * BATCH} / ${CAPACITY} particles`);
+    demo.dispose();
+  });
+
+  test('the pile stops growing at capacity', () => {
+    const demo = new PileDemo();
+    demo.create(engine, new THREE.Scene());
+
+    for (let i = 0; i < CAPACITY / BATCH + 1; i++) action(demo, '+100');
+
+    expect(engine.particleCount()).toBe(CAPACITY);
+    expect(demo.hint).toContain(`${CAPACITY} / ${CAPACITY} particles`);
     demo.dispose();
   });
 });
