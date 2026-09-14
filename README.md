@@ -61,9 +61,11 @@ Then, in every shell that builds the WASM target, put `emcc`/`emcmake` on the `P
 Configure with `emcmake` into a separate build directory; the native `build/` is untouched:
 
 ```bash
-emcmake cmake -B build-wasm -DCMAKE_BUILD_TYPE=Release
+emcmake cmake -B build-wasm -DCMAKE_BUILD_TYPE=Release -G Ninja
 cmake --build build-wasm
 ```
+
+`emcmake` cannot drive the Visual Studio generator, so on Windows install [Ninja](https://ninja-build.org/) (`winget install Ninja-build.Ninja`) and pass `-G Ninja` as above; on Linux/macOS the default Makefile generator works too.
 
 This produces `build-wasm/brise.js` (an ES module, `-sMODULARIZE -sEXPORT_ES6`) and `build-wasm/brise.wasm`, and copies both to `web/public/` for the viewer. Every `world_*` function is exported; `cwrap` and `HEAPF32` are the exported runtime methods. The tests are not built under Emscripten: they run natively.
 
