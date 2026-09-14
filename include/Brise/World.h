@@ -58,7 +58,7 @@ namespace Brise {
 
 		// The world takes ownership of the generator; register it to particles
 		// with AddForceGenToRegistry.
-		ParticleForceGenerator& AddForceGenerator(std::unique_ptr<ParticleForceGenerator> fg);
+		ParticleForceGenerator* AddForceGenerator(std::unique_ptr<ParticleForceGenerator> fg);
 		void AddForceGenToRegistry(Particle* particle, ParticleForceGenerator* fg);
 
 		// The world takes ownership of the link and returns its id.

@@ -1,18 +1,12 @@
 #include <doctest/doctest.h>
 #include <Brise/PContact.h>
+#include "TestHelpers.h"
 
 using Brise::Particle;
 using Brise::ParticleContact;
 using Brise::Vec3;
 
 namespace {
-	void CheckVec(const Vec3& v, float x, float y, float z)
-	{
-		CHECK(v.x == doctest::Approx(x));
-		CHECK(v.y == doctest::Approx(y));
-		CHECK(v.z == doctest::Approx(z));
-	}
-
 	// Two equal-mass particles closing head-on at 2 m/s each along a unit
 	// normal that is not axis-aligned. The contact normal points from b to a
 	// (the direction a must move to separate).
@@ -42,7 +36,7 @@ TEST_CASE("ParticleContact::CalculateSeparatingVelocity projects the relative ve
 	CHECK(contact.CalculateSeparatingVelocity() == doctest::Approx(-4.0f));
 }
 
-TEST_CASE("Head-on collision with restitution 1 swaps the velocities along a 3D normal")
+TEST_CASE("Head-on contact with restitution 1 swaps the velocities along a 3D normal")
 {
 	Particle a(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	Particle b(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
@@ -54,7 +48,7 @@ TEST_CASE("Head-on collision with restitution 1 swaps the velocities along a 3D 
 	CheckVec(b.velocity, -kNormal.x * 2.0f, -kNormal.y * 2.0f, -kNormal.z * 2.0f);
 }
 
-TEST_CASE("Head-on collision with restitution 0 stops both equal-mass particles")
+TEST_CASE("Head-on contact with restitution 0 stops both equal-mass particles")
 {
 	Particle a(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	Particle b(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
@@ -66,7 +60,7 @@ TEST_CASE("Head-on collision with restitution 0 stops both equal-mass particles"
 	CheckVec(b.velocity, 0.0f, 0.0f, 0.0f);
 }
 
-TEST_CASE("Head-on collision with restitution 0.5 separates at half the closing speed")
+TEST_CASE("Head-on contact with restitution 0.5 separates at half the closing speed")
 {
 	Particle a(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	Particle b(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
@@ -80,7 +74,7 @@ TEST_CASE("Head-on collision with restitution 0.5 separates at half the closing 
 	CHECK(contact.CalculateSeparatingVelocity() == doctest::Approx(2.0f));
 }
 
-TEST_CASE("Colliding with an infinite-mass particle reflects only the finite one")
+TEST_CASE("A contact with an infinite-mass particle reflects only the finite one")
 {
 	Particle a(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	Particle wall(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);

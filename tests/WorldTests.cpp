@@ -59,9 +59,9 @@ TEST_CASE("World owns its force generators and applies registered ones every ste
 	Particle* p = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	p->acceleration = { 0, 0, 0 }; // cancel gravity to isolate the generator
 
-	Brise::ParticleForceGenerator& push =
+	Brise::ParticleForceGenerator* push =
 		world.AddForceGenerator(std::make_unique<Brise::ParticleGravity>(Vec3(0.0f, 0.0f, 2.0f)));
-	world.AddForceGenToRegistry(p, &push);
+	world.AddForceGenToRegistry(p, push);
 
 	world.Update(1.0f);
 	CHECK(p->velocity.z == doctest::Approx(2.0f));
@@ -73,15 +73,15 @@ TEST_CASE("World owns its force generators and applies registered ones every ste
 TEST_CASE("Rod keeps its length while the free end swings under gravity")
 {
 	World world(2, 10);
-	Particle* anchor = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
-	anchor->SetInfiniteMass();
+	Particle* pivot = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
+	pivot->SetInfiniteMass();
 	Particle* bob = world.AddParticle(Vec3(1.2f, 0.0f, 1.6f), 1.0f, 0.99f, 0.1f); // 2 m away, horizontal
 
-	world.AddLink(std::make_unique<Brise::ParticleRod>(anchor, bob, 2.0f));
+	world.AddLink(std::make_unique<Brise::ParticleRod>(pivot, bob, 2.0f));
 
 	for (int i = 0; i < 60; i++) {
 		world.Update(1.0f / 60.0f);
-		float length = Brise::Magnitude(bob->position - anchor->position);
+		float length = Brise::Magnitude(bob->position - pivot->position);
 		CHECK(length == doctest::Approx(2.0f).epsilon(0.01f));
 	}
 
@@ -91,17 +91,17 @@ TEST_CASE("Rod keeps its length while the free end swings under gravity")
 TEST_CASE("Cable never exceeds its max length after a step")
 {
 	World world(2, 10);
-	Particle* anchor = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
-	anchor->SetInfiniteMass();
+	Particle* pivot = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
+	pivot->SetInfiniteMass();
 	Particle* bob = world.AddParticle(Vec3(0.0f, -1.0f, 0.0f), 1.0f, 0.99f, 0.1f);
 
-	world.AddLink(std::make_unique<Brise::ParticleCable>(anchor, bob, 3.0f, 0.0f));
+	world.AddLink(std::make_unique<Brise::ParticleCable>(pivot, bob, 3.0f, 0.0f));
 
 	// The resolver corrects 80% of an overshoot per iteration, so allow a
 	// small residual on the step the cable first goes taut.
 	for (int i = 0; i < 120; i++) {
 		world.Update(1.0f / 60.0f);
-		float length = Brise::Magnitude(bob->position - anchor->position);
+		float length = Brise::Magnitude(bob->position - pivot->position);
 		CHECK(length <= 3.0f + 0.02f);
 	}
 
@@ -112,37 +112,37 @@ TEST_CASE("Cable never exceeds its max length after a step")
 TEST_CASE("Removing a link stops it generating contacts while other links keep working")
 {
 	World world(3, 10);
-	Particle* anchor = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
-	anchor->SetInfiniteMass();
+	Particle* pivot = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
+	pivot->SetInfiniteMass();
 	Particle* a = world.AddParticle(Vec3(1.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	Particle* b = world.AddParticle(Vec3(-1.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 
-	Brise::LinkId rodA = world.AddLink(std::make_unique<Brise::ParticleRod>(anchor, a, 1.0f));
-	Brise::LinkId rodB = world.AddLink(std::make_unique<Brise::ParticleRod>(anchor, b, 1.0f));
+	Brise::LinkId rodA = world.AddLink(std::make_unique<Brise::ParticleRod>(pivot, a, 1.0f));
+	Brise::LinkId rodB = world.AddLink(std::make_unique<Brise::ParticleRod>(pivot, b, 1.0f));
 	CHECK(rodA != rodB);
 
 	world.RemoveLink(rodA);
 	world.Update(1.0f);
 
 	// a fell freely; b is still held at 1 m
-	CHECK(Brise::Magnitude(a->position - anchor->position) > 2.0f);
-	CHECK(Brise::Magnitude(b->position - anchor->position) == doctest::Approx(1.0f).epsilon(0.01f));
+	CHECK(Brise::Magnitude(a->position - pivot->position) > 2.0f);
+	CHECK(Brise::Magnitude(b->position - pivot->position) == doctest::Approx(1.0f).epsilon(0.01f));
 }
 
 TEST_CASE("World only generates up to maxContacts contacts per step")
 {
 	World world(3, 1);
-	Particle* anchor = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
-	anchor->SetInfiniteMass();
+	Particle* pivot = world.AddParticle(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
+	pivot->SetInfiniteMass();
 	Particle* a = world.AddParticle(Vec3(1.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	Particle* b = world.AddParticle(Vec3(-1.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 
-	world.AddLink(std::make_unique<Brise::ParticleRod>(anchor, a, 1.0f));
-	world.AddLink(std::make_unique<Brise::ParticleRod>(anchor, b, 1.0f));
+	world.AddLink(std::make_unique<Brise::ParticleRod>(pivot, a, 1.0f));
+	world.AddLink(std::make_unique<Brise::ParticleRod>(pivot, b, 1.0f));
 
 	world.Update(1.0f);
 
 	// Only the first rod fits in the contact budget; the second never holds
-	CHECK(Brise::Magnitude(a->position - anchor->position) == doctest::Approx(1.0f).epsilon(0.01f));
-	CHECK(Brise::Magnitude(b->position - anchor->position) > 2.0f);
+	CHECK(Brise::Magnitude(a->position - pivot->position) == doctest::Approx(1.0f).epsilon(0.01f));
+	CHECK(Brise::Magnitude(b->position - pivot->position) > 2.0f);
 }

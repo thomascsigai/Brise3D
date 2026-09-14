@@ -1,6 +1,6 @@
 #include <Brise/World.h>
 
-#include <algorithm>
+#include <vector>
 
 namespace Brise {
 	World::World(size_t maxParticles, unsigned maxContacts, float fixedTimeStep)
@@ -57,9 +57,9 @@ namespace Brise {
 		return capacity;
 	}
 
-	ParticleForceGenerator& World::AddForceGenerator(std::unique_ptr<ParticleForceGenerator> fg) {
+	ParticleForceGenerator* World::AddForceGenerator(std::unique_ptr<ParticleForceGenerator> fg) {
 		forceGenerators.push_back(std::move(fg));
-		return *forceGenerators.back();
+		return forceGenerators.back().get();
 	}
 
 	void World::AddForceGenToRegistry(Particle* particle, ParticleForceGenerator* fg) {
@@ -73,13 +73,7 @@ namespace Brise {
 	}
 
 	void World::RemoveLink(LinkId id) {
-		links.erase(
-			std::remove_if(
-				links.begin(),
-				links.end(),
-				[id](const LinkEntry& entry) { return entry.id == id; }),
-			links.end()
-		);
+		std::erase_if(links, [id](const LinkEntry& entry) { return entry.id == id; });
 	}
 
 	unsigned World::GenerateContacts() {

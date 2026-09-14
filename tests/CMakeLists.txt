@@ -12,6 +12,7 @@ add_executable(
 	main.cpp
 	Vec3Tests.cpp
 	ParticleTests.cpp
+	TestHelpers.h
 	ForceGenTests.cpp
 	ContactTests.cpp
 	WorldTests.cpp

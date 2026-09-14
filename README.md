@@ -60,12 +60,12 @@ target_link_libraries(your_target PRIVATE brise)
 Brise::World world(100, 50);
 
 // Position, mass, damping, radius; returns nullptr once the world is at capacity
-Brise::Particle* anchor = world.AddParticle({0.0f, 5.0f, 0.0f}, 1.0f, 0.99f, 0.1f);
-anchor->SetInfiniteMass();
+Brise::Particle* pivot = world.AddParticle({0.0f, 5.0f, 0.0f}, 1.0f, 0.99f, 0.1f);
+pivot->SetInfiniteMass();
 Brise::Particle* bob = world.AddParticle({2.0f, 5.0f, 0.0f}, 1.0f, 0.99f, 0.1f);
 
 // The world owns its links and force generators
-Brise::LinkId rod = world.AddLink(std::make_unique<Brise::ParticleRod>(anchor, bob, 2.0f));
+Brise::LinkId rod = world.AddLink(std::make_unique<Brise::ParticleRod>(pivot, bob, 2.0f));
 
 while (running) {
     world.Update(frameTime); // advances by fixed 1/120 s steps

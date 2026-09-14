@@ -1,5 +1,6 @@
 #include <doctest/doctest.h>
 #include <Brise/PForceGen.h>
+#include "TestHelpers.h"
 
 using Brise::Particle;
 using Brise::Vec3;
@@ -19,13 +20,6 @@ namespace {
 		particle.Integrate(1.0f);
 
 		return particle.velocity;
-	}
-
-	void CheckVec(const Vec3& v, float x, float y, float z)
-	{
-		CHECK(v.x == doctest::Approx(x));
-		CHECK(v.y == doctest::Approx(y));
-		CHECK(v.z == doctest::Approx(z));
 	}
 }
 
