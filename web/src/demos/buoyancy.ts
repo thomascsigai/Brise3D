@@ -4,7 +4,7 @@ import { disposeObject, makeGround } from '../render';
 import type { CameraView, Demo, DemoAction } from './demo';
 
 const CAPACITY = 8;
-const POOL_SIZE = 12;
+const POOL_WIDTH = 12;
 /** The liquid surface; the ground plane at y = 0 is the pool floor. */
 export const WATER_HEIGHT = 1.5;
 const RADIUS = 0.4;
@@ -48,9 +48,9 @@ export class BuoyancyDemo implements Demo {
     }
 
     this.scenery = new THREE.Group();
-    this.scenery.add(makeGround(POOL_SIZE));
+    this.scenery.add(makeGround(POOL_WIDTH));
     const water = new THREE.Mesh(
-      new THREE.PlaneGeometry(POOL_SIZE, POOL_SIZE),
+      new THREE.PlaneGeometry(POOL_WIDTH, POOL_WIDTH),
       new THREE.MeshStandardMaterial({ color: 0x3a86c8, transparent: true, opacity: 0.45, side: THREE.DoubleSide }),
     );
     water.rotation.x = -Math.PI / 2;

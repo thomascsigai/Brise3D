@@ -2,10 +2,13 @@ import * as THREE from 'three';
 import type { Engine } from '../engine';
 import { SegmentLines, disposeObject, makeGround, makeMarker } from '../render';
 import type { Demo, DemoAction } from './demo';
+import { kickRandom } from './kick';
 
 const CAPACITY = 8;
 const LENGTH = 3;
 const RADIUS = 0.2;
+const PIVOT = { x: 0, y: 4, z: 0 };
+const HOOK = { x: 6, y: 4, z: 0 };
 
 /** A free pair tumbling in space, a pendulum on a rod, and a double pendulum. */
 export class RodsDemo implements Demo {
@@ -17,7 +20,7 @@ export class RodsDemo implements Demo {
   private scene!: THREE.Scene;
   private scenery = new THREE.Group();
   private lines?: SegmentLines;
-  private free: number[] = [];
+  private kicked: number[] = [];
 
   create(engine: Engine, scene: THREE.Scene): void {
     this.engine = engine;
@@ -39,23 +42,23 @@ export class RodsDemo implements Demo {
     rod(head, tail);
 
     // Pendulum released horizontally
-    const pivot = engine.addParticle({ x: 0, y: 4, z: 0 }, 0, 1, 0.15);
+    const pivot = engine.addParticle(PIVOT, 0, 1, 0.15);
     const bob = engine.addParticle({ x: 3, y: 4, z: 0 }, 1, 0.99, RADIUS);
     rod(pivot, bob);
 
-    // Double pendulum
-    const anchor = engine.addParticle({ x: 6, y: 4, z: 0 }, 0, 1, 0.15);
+    // Double pendulum from an infinite-mass hook
+    const hook = engine.addParticle(HOOK, 0, 1, 0.15);
     const upper = engine.addParticle({ x: 8, y: 6, z: 1 }, 0.5, 0.99, RADIUS);
     const lower = engine.addParticle({ x: 8, y: 9, z: 1 }, 0.5, 0.99, RADIUS);
-    rod(anchor, upper);
+    rod(hook, upper);
     rod(upper, lower);
 
-    this.free = [head, tail, bob, upper, lower];
+    this.kicked = [head, tail, bob, upper, lower];
 
     this.scenery = new THREE.Group();
     this.scenery.add(makeGround(20));
-    this.scenery.add(makeMarker(0.3, 0.3, 0.3, { x: 0, y: 4, z: 0 }));
-    this.scenery.add(makeMarker(0.3, 0.3, 0.3, { x: 6, y: 4, z: 0 }));
+    this.scenery.add(makeMarker(0.3, 0.3, 0.3, PIVOT));
+    this.scenery.add(makeMarker(0.3, 0.3, 0.3, HOOK));
     this.lines = new SegmentLines(segments);
     this.scenery.add(this.lines.lines);
     scene.add(this.scenery);
@@ -72,12 +75,6 @@ export class RodsDemo implements Demo {
   }
 
   private kick(): void {
-    for (const p of this.free) {
-      this.engine.setVelocity(p, {
-        x: THREE.MathUtils.randFloatSpread(4),
-        y: THREE.MathUtils.randFloat(1, 4),
-        z: THREE.MathUtils.randFloatSpread(4),
-      });
-    }
+    kickRandom(this.engine, this.kicked, 4, 1, 4);
   }
 }

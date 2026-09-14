@@ -23,9 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Pinned so the cached SDK and the published wasm are reproducible.
       - uses: mymindstorm/setup-emsdk@v14
         with:
-          version: latest
+          version: 6.0.9
           actions-cache-folder: emsdk-cache
 
       # The brise_wasm target copies brise.js and brise.wasm to web/public/
@@ -45,7 +46,7 @@ jobs:
         working-directory: web
         run: npm ci
 
-      # The Engine wrapper tests run against the brise.wasm just built.
+      # The Engine and demo tests run against the brise.wasm just built.
       - name: Test viewer
         working-directory: web
         run: npm test

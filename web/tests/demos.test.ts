@@ -150,7 +150,7 @@ describe('Rods', () => {
 
     run(3);
 
-    // Setup order: free pair (0, 1), pendulum (2, 3), chain (4, 5, 6)
+    // Creation order: free pair (0, 1), pendulum (2, 3), double pendulum (4, 5, 6)
     expect(distance(2, 3)).toBeCloseTo(3, 1);
     expect(distance(4, 5)).toBeCloseTo(3, 1);
     expect(distance(5, 6)).toBeCloseTo(3, 1);
@@ -191,7 +191,7 @@ describe('Bridge', () => {
 
     const count = engine.particleCount();
     const before = Array.from({ length: count }, (_, i) => position(i).y);
-    // Every deck particle hangs below the anchors and above the ground
+    // Every deck particle hangs below the towers and above the ground
     for (let i = 1; i < count - 1; i++) {
       expect(before[i]).toBeLessThan(before[0]);
       expect(before[i]).toBeGreaterThan(0.5);

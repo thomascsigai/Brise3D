@@ -7,127 +7,128 @@ const RADIUS = 0.35;
 /** Height of the collision line above the ground grid. */
 const HEIGHT = 1.5;
 
-interface Body {
+interface ThrownParticle {
   position: Vec3Like;
   /** 0 is infinite mass. */
   mass: number;
   velocity: Vec3Like;
 }
 
-interface CollisionTest {
+/** One of the collision cases of the original 2D viewer; each is a fresh world. */
+interface Scenario {
   name: string;
   key: string;
   restitution: number;
-  bodies: [Body, Body];
+  particles: [ThrownParticle, ThrownParticle];
 }
 
-const at = (x: number, z = 0): Vec3Like => ({ x, y: HEIGHT, z });
-const v = (x: number, y = 0, z = 0): Vec3Like => ({ x, y, z });
+const onLine = (x: number, z = 0): Vec3Like => ({ x, y: HEIGHT, z });
+const velocity = (x: number, y = 0, z = 0): Vec3Like => ({ x, y, z });
 
 // Two particles on a collision course with gravity cancelled. The keys
-// follow the Q, W, E... row of the original sandbox, skipping R (Reset).
-const TESTS: CollisionTest[] = [
+// follow the Q, W, E... row of the 2D viewer, skipping R (Reset).
+const SCENARIOS: Scenario[] = [
   {
     name: 'Simple collision',
     key: 'q',
     restitution: 1,
-    bodies: [
-      { position: at(-3), mass: 3, velocity: v(2) },
-      { position: at(3), mass: 3, velocity: v(-2) },
+    particles: [
+      { position: onLine(-3), mass: 3, velocity: velocity(2) },
+      { position: onLine(3), mass: 3, velocity: velocity(-2) },
     ],
   },
   {
     name: 'Non-linear contact',
     key: 'w',
     restitution: 1,
-    bodies: [
-      { position: at(-3, -1), mass: 3, velocity: v(2, 0, 1) },
-      { position: at(3), mass: 3, velocity: v(-2) },
+    particles: [
+      { position: onLine(-3, -1), mass: 3, velocity: velocity(2, 0, 1) },
+      { position: onLine(3), mass: 3, velocity: velocity(-2) },
     ],
   },
   {
     name: 'Different speeds',
     key: 'e',
     restitution: 1,
-    bodies: [
-      { position: at(-3), mass: 3, velocity: v(5) },
-      { position: at(3), mass: 3, velocity: v(-1) },
+    particles: [
+      { position: onLine(-3), mass: 3, velocity: velocity(5) },
+      { position: onLine(3), mass: 3, velocity: velocity(-1) },
     ],
   },
   {
     name: 'Different masses',
     key: 't',
     restitution: 1,
-    bodies: [
-      { position: at(-3), mass: 1, velocity: v(5) },
-      { position: at(3), mass: 10, velocity: v(0) },
+    particles: [
+      { position: onLine(-3), mass: 1, velocity: velocity(5) },
+      { position: onLine(3), mass: 10, velocity: velocity(0) },
     ],
   },
   {
     name: 'Zero restitution',
     key: 'y',
     restitution: 0,
-    bodies: [
-      { position: at(-3), mass: 3, velocity: v(3) },
-      { position: at(3), mass: 3, velocity: v(-3) },
+    particles: [
+      { position: onLine(-3), mass: 3, velocity: velocity(3) },
+      { position: onLine(3), mass: 3, velocity: velocity(-3) },
     ],
   },
   {
     name: 'Mid restitution',
     key: 'u',
     restitution: 0.5,
-    bodies: [
-      { position: at(-3), mass: 3, velocity: v(4) },
-      { position: at(3), mass: 3, velocity: v(-4) },
+    particles: [
+      { position: onLine(-3), mass: 3, velocity: velocity(4) },
+      { position: onLine(3), mass: 3, velocity: velocity(-4) },
     ],
   },
   {
     name: 'Infinite mass',
     key: 'i',
     restitution: 1,
-    bodies: [
-      { position: at(-3), mass: 3, velocity: v(5) },
-      { position: at(3), mass: 0, velocity: v(0) },
+    particles: [
+      { position: onLine(-3), mass: 3, velocity: velocity(5) },
+      { position: onLine(3), mass: 0, velocity: velocity(0) },
     ],
   },
   {
     name: 'Interpenetration',
     key: 'o',
     restitution: 1,
-    bodies: [
-      { position: at(-0.2), mass: 3, velocity: v(0) },
-      { position: at(0.2), mass: 3, velocity: v(0) },
+    particles: [
+      { position: onLine(-0.2), mass: 3, velocity: velocity(0) },
+      { position: onLine(0.2), mass: 3, velocity: velocity(0) },
     ],
   },
   {
     name: 'Stabilization',
     key: 'p',
     restitution: 1,
-    bodies: [
-      { position: at(-1), mass: 3, velocity: v(0.5) },
-      { position: at(1), mass: 3, velocity: v(-0.5) },
+    particles: [
+      { position: onLine(-1), mass: 3, velocity: velocity(0.5) },
+      { position: onLine(1), mass: 3, velocity: velocity(-0.5) },
     ],
   },
 ];
 
-/** Two particles thrown at each other; each test is a fresh world. */
+/** Two particles thrown at each other, in the scenario picked from the overlay. */
 export class CollisionDemo implements Demo {
   readonly name = 'Collision';
   readonly camera: CameraView = { position: { x: 0, y: 4, z: 9 }, target: { x: 0, y: HEIGHT, z: 0 } };
-  readonly actions: DemoAction[] = TESTS.map((test) => ({
-    label: test.name,
-    key: test.key,
-    run: () => this.select(test),
+  readonly actions: DemoAction[] = SCENARIOS.map((scenario) => ({
+    label: scenario.name,
+    key: scenario.key,
+    run: () => this.select(scenario),
   }));
 
   private engine!: Engine;
   private scene!: THREE.Scene;
   private ground = new THREE.Group();
-  private test: CollisionTest = TESTS[0]!;
+  private scenario: Scenario = SCENARIOS[0]!;
 
-  /** Names the running test; the overlay re-reads it after each action. */
+  /** Names the running scenario; the overlay re-reads it after each action. */
   get hint(): string {
-    return `${this.test.name}: pick another test above`;
+    return `${this.scenario.name}: pick another scenario above`;
   }
 
   create(engine: Engine, scene: THREE.Scene): void {
@@ -144,19 +145,19 @@ export class CollisionDemo implements Demo {
     disposeObject(this.ground);
   }
 
-  private select(test: CollisionTest): void {
-    this.test = test;
+  private select(scenario: Scenario): void {
+    this.scenario = scenario;
     this.build();
   }
 
   /** A new world of two particles (same capacity, so the viewer's spheres stay valid). */
   private build(): void {
     this.engine.createWorld(2, 4);
-    this.engine.enableParticleCollisions(this.test.restitution);
-    for (const body of this.test.bodies) {
-      const p = this.engine.addParticle(body.position, body.mass, 0.99, RADIUS);
+    this.engine.enableParticleCollisions(this.scenario.restitution);
+    for (const thrown of this.scenario.particles) {
+      const p = this.engine.addParticle(thrown.position, thrown.mass, 0.99, RADIUS);
       this.engine.setAcceleration(p, { x: 0, y: 0, z: 0 });
-      this.engine.setVelocity(p, body.velocity);
+      this.engine.setVelocity(p, thrown.velocity);
     }
   }
 }

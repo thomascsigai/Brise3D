@@ -22,7 +22,7 @@ The port from 2D is in progress. Done so far:
 - **`World`** — fixed-step simulation container that owns its particles, force generators, links and contact generators
 - **Flat C API** — `extern "C"` functions addressing particles by index and links by id, compiled to WebAssembly with Emscripten for the web viewer (see [ADR-0001](docs/adr/0001-flat-c-api-over-wasm.md))
 - **Unit tests** — [doctest](https://github.com/doctest/doctest), run through `ctest`
-- **Web viewer** — Vite + TypeScript + [Three.js](https://threejs.org/) in [web/](web/), with the ten demos of the 2D sandbox ported to 3D: **Particles**, **Ballistics**, **Springs**, **Buoyancy**, **Collision**, **Resting**, **Cables**, **Rods**, **Cube** (a real cube of rods) and **Bridge**
+- **Web viewer** — Vite + TypeScript + [Three.js](https://threejs.org/) in [web/](web/), with the ten demos of the 2D viewer ported to 3D: **Particles**, **Ballistics**, **Springs**, **Buoyancy**, **Collision**, **Resting**, **Cables**, **Rods**, **Cube** (a real cube of rods) and **Bridge**
 
 Further demos are tracked as GitHub issues.
 

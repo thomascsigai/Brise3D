@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { Engine } from '../engine';
 import { SegmentLines, disposeObject, makeGround, makeMarker, type SegmentEnd } from '../render';
 import type { Demo, DemoAction } from './demo';
+import { kickRandom } from './kick';
 
 const CAPACITY = 16;
 const TOP = 5;
@@ -68,12 +69,6 @@ export class SpringsDemo implements Demo {
   }
 
   private kick(): void {
-    for (const bob of this.bobs) {
-      this.engine.setVelocity(bob, {
-        x: THREE.MathUtils.randFloatSpread(6),
-        y: THREE.MathUtils.randFloat(2, 6),
-        z: THREE.MathUtils.randFloatSpread(6),
-      });
-    }
+    kickRandom(this.engine, this.bobs, 6, 2, 6);
   }
 }

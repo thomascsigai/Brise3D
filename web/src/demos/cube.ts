@@ -23,10 +23,13 @@ function pairs(): [number, number][] {
   return result;
 }
 
+/** Every pair of corners gets a rod: the edges alone would let the cube shear. */
+const RODS = pairs();
+
 /** A cube of eight particles held rigid by rods, dropped onto the ground. */
 export class CubeDemo implements Demo {
   /** The twelve edges: corner pairs that differ in exactly one coordinate. */
-  static readonly EDGES: [number, number][] = pairs().filter(([i, j]) => [1, 2, 4].includes(i ^ j));
+  static readonly EDGES: [number, number][] = RODS.filter(([i, j]) => [1, 2, 4].includes(i ^ j));
 
   readonly name = 'Cube';
   readonly hint = 'Every pair of corners is joined by a rod, so the cube is rigid';
@@ -40,15 +43,14 @@ export class CubeDemo implements Demo {
   create(engine: Engine, scene: THREE.Scene): void {
     this.engine = engine;
     this.scene = scene;
-    engine.createWorld(CORNERS, 64);
+    // One contact per rod plus one per corner on the ground
+    engine.createWorld(CORNERS, RODS.length + CORNERS);
     engine.addGroundPlane(0, 0.2);
 
     for (let i = 0; i < CORNERS; i++) {
       engine.addParticle(corner(i).applyEuler(START_TILT).add(START), 1, 0.99, RADIUS);
     }
-    // Rods along the edges alone leave the cube free to shear; the face and
-    // space diagonals make it rigid.
-    for (const [i, j] of pairs()) engine.addRod(i, j, corner(i).distanceTo(corner(j)));
+    for (const [i, j] of RODS) engine.addRod(i, j, corner(i).distanceTo(corner(j)));
 
     this.scenery = new THREE.Group();
     this.scenery.add(makeGround(12));
