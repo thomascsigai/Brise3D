@@ -7,6 +7,7 @@ namespace Brise {
 
 	class ParticleForceGenerator {
 	public: 
+		virtual ~ParticleForceGenerator() = default;
 		virtual void UpdateForce(Particle* particle, float duration) = 0;
 	};
 

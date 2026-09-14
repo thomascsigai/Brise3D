@@ -49,6 +49,7 @@ namespace Brise {
 
 	class ParticleContactGenerator {
 	public:
+		virtual ~ParticleContactGenerator() = default;
 		virtual unsigned AddContact(ParticleContact& contact, unsigned limit) const = 0;
 	};
 

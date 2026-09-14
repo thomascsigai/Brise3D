@@ -10,9 +10,13 @@ The port from 2D is in progress. Done so far:
 
 - **`Vec3`** — 3D vector math (dot, cross, normalize, project/reject)
 - **`Particle`** — position, velocity, acceleration, inverse mass, damping and a radius
+- **Force generators** — gravity, spring, anchored spring, bungee, buoyancy, and the force registry
+- **Contacts** — impulse exchange and interpenetration correction, with an iterative resolver
+- **Links** — cable and rod
+- **`World`** — fixed-step simulation container that owns its particles, force generators and links
 - **Unit tests** — [doctest](https://github.com/doctest/doctest), run through `ctest`
 
-Still to come, tracked as GitHub issues: force generators, contacts and links, the `World`, a ground plane and particle collision, a flat C API compiled to WebAssembly, and a web viewer (Three.js) with the demos.
+Still to come, tracked as GitHub issues: a ground plane and particle collision, a flat C API compiled to WebAssembly, and a web viewer (Three.js) with the demos.
 
 ## Getting Started
 
@@ -50,17 +54,24 @@ target_link_libraries(your_target PRIVATE brise)
 ## Usage
 
 ```cpp
-#include <Brise/Particle.h>
+#include <Brise/World.h>
 
-// Position, mass, damping, radius
-Brise::Particle p({0.0f, 10.0f, 0.0f}, 1.0f, 0.99f, 0.1f);
-p.velocity = {5.0f, 0.0f, 0.0f};
-p.acceleration = {0.0f, -9.81f, 0.0f};
+// Capacity of 100 particles, up to 50 contacts per step
+Brise::World world(100, 50);
 
-float dt = 1.0f / 120.0f;
+// Position, mass, damping, radius; returns nullptr once the world is at capacity
+Brise::Particle* anchor = world.AddParticle({0.0f, 5.0f, 0.0f}, 1.0f, 0.99f, 0.1f);
+anchor->SetInfiniteMass();
+Brise::Particle* bob = world.AddParticle({2.0f, 5.0f, 0.0f}, 1.0f, 0.99f, 0.1f);
+
+// The world owns its links and force generators
+Brise::LinkId rod = world.AddLink(std::make_unique<Brise::ParticleRod>(anchor, bob, 2.0f));
+
 while (running) {
-    p.Integrate(dt);
+    world.Update(frameTime); // advances by fixed 1/120 s steps
 }
+
+world.RemoveLink(rod);
 ```
 
 ## Architecture
@@ -69,10 +80,10 @@ while (running) {
 include/Brise/
 ├── Vec3.h          # 3D vector math
 ├── Particle.h      # Core particle entity
-├── PForceGen.h     # Force generator interfaces and implementations (2D, pending translation)
-├── PContact.h      # Contact representation and resolution (2D, pending translation)
-├── PLinks.h        # Cable and rod links (2D, pending translation)
-└── World.h         # Main simulation container (2D, pending translation)
+├── PForceGen.h     # Force generator interfaces and implementations
+├── PContact.h      # Contact representation and resolution
+├── PLinks.h        # Cable and rod links
+└── World.h         # Main simulation container
 tests/              # doctest unit tests
 ```
 

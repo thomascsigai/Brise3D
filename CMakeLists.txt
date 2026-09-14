@@ -17,7 +17,9 @@ add_library(
 	src/Particle.cpp
 	src/PContact.cpp
 	src/PForceGen.cpp
+	src/PLinks.cpp
 	src/Vec3.cpp
+	src/World.cpp
 )
 
 target_include_directories(brise PUBLIC ${PROJECT_SOURCE_DIR}/include)

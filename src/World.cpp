@@ -1,9 +1,13 @@
 #include <Brise/World.h>
 
+#include <algorithm>
+
 namespace Brise {
-	World::World(size_t numParticles, float fixedTimeStep)
-	: resolver(0), fixedDt(fixedTimeStep) {
-		Init(numParticles);
+	World::World(size_t maxParticles, unsigned maxContacts, float fixedTimeStep)
+	: capacity(maxParticles), resolver(0), maxContacts(maxContacts), fixedDt(fixedTimeStep) {
+		particles.reserve(capacity);
+		contacts.resize(maxContacts);
+		gravity = { 0, -9.81f, 0 }; // Default to real world gravity acceleration
 	}
 
 	void World::Update(float deltaTime) {
@@ -36,47 +40,57 @@ namespace Brise {
 		}
 	}
 
-	Particle& World::AddParticule(Vec2 position, float mass, float damping) {
-		particles.push_back(Particle(position, mass, damping));
+	Particle* World::AddParticle(Vec3 position, float mass, float damping, float radius) {
+		if (particles.size() >= capacity) return nullptr;
+
+		particles.push_back(Particle(position, mass, damping, radius));
 		particles.back().acceleration = gravity; // Set world gravity as constant acceleration
 
-		return particles.back();
-	}
-
-	void World::AddForceGenToRegistry(Particle* particle, ParticleForceGenerator* fg) {
-		forceRegistry.Add(particle, fg);
+		return &particles.back();
 	}
 
 	const World::ParticleContainer& World::GetParticles() const {
 		return particles;
 	}
 
-	void World::Init(size_t numParticles) {
-		particles.reserve(numParticles);
-		SetGravity({ 0, -9.81 }); // Default to real world gravity acceleration
-		maxContacts = 100;
-		contacts.resize(maxContacts);
+	size_t World::GetCapacity() const {
+		return capacity;
 	}
 
-	void World::Shutdown() {}
-
-	void World::SetGravity(Vec2 gravityForce) {
-		gravity = gravityForce;
+	ParticleForceGenerator& World::AddForceGenerator(std::unique_ptr<ParticleForceGenerator> fg) {
+		forceGenerators.push_back(std::move(fg));
+		return *forceGenerators.back();
 	}
 
-	Vec2 World::GetGravity() {
-		return gravity;
+	void World::AddForceGenToRegistry(Particle* particle, ParticleForceGenerator* fg) {
+		forceRegistry.Add(particle, fg);
+	}
+
+	LinkId World::AddLink(std::unique_ptr<ParticleLink> link) {
+		LinkId id = nextLinkId++;
+		links.push_back({ id, std::move(link) });
+		return id;
+	}
+
+	void World::RemoveLink(LinkId id) {
+		links.erase(
+			std::remove_if(
+				links.begin(),
+				links.end(),
+				[id](const LinkEntry& entry) { return entry.id == id; }),
+			links.end()
+		);
 	}
 
 	unsigned World::GenerateContacts() {
 		unsigned limit = maxContacts;
 		unsigned nextContact = 0;
 
-		for (auto generator : contactGenerators) {
+		for (const auto& entry : links) {
 			if (nextContact >= limit)
 				break;
 
-			unsigned used = generator->AddContact(
+			unsigned used = entry.link->AddContact(
 				contacts[nextContact],
 				limit - nextContact
 			);
@@ -85,16 +99,5 @@ namespace Brise {
 		}
 
 		return nextContact;
-	}
-
-	void World::AddContactGenerator(ParticleContactGenerator* generator) {
-		contactGenerators.push_back(generator);
-	}
-
-	void World::RemoveContactGenerator(ParticleContactGenerator* generator) {
-		contactGenerators.erase(
-			std::remove(contactGenerators.begin(), contactGenerators.end(), generator),
-			contactGenerators.end()
-		);
 	}
 }
