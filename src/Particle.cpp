@@ -1,22 +1,23 @@
 #include <Brise/Particle.h>
 #include <Brise/BriseAssert.h>
+#include <cmath>
 #include <limits>
 
 namespace Brise {
-	Particle::Particle(Vec2 position, float mass, float damping) 
-	: position(position), damping(damping) {
+	Particle::Particle(Vec3 position, float mass, float damping, float radius) 
+	: position(position), radius(radius), damping(damping) {
 		SetMass(mass);
-		velocity = { 0, 0 };
-		acceleration = { 0, 0 };
+		velocity = { 0, 0, 0 };
+		acceleration = { 0, 0, 0 };
 
-		forceAccum = { 0, 0 };
+		forceAccum = { 0, 0, 0 };
 	}
 
 	/// <summary>
 	/// Integrates the particle forward in time by the given amount.
 	/// Using Newton Euler integration.
 	/// </summary>
-	/// <param name="duration">In ms</param>
+	/// <param name="duration">In seconds</param>
 	void Particle::Integrate(float duration) {
 		// Don't integrate particles with infinite mass
 		if (inverseMass == 0) return;
@@ -27,14 +28,14 @@ namespace Brise {
 		position += velocity * duration;
 
 		// Get acceleration from the forces
-		Vec2 resultingAcc = acceleration;
+		Vec3 resultingAcc = acceleration;
 		resultingAcc += forceAccum * inverseMass;
 
 		// Update velocity from acceleration
 		velocity += resultingAcc * duration;
 
 		// Impose Drag
-		velocity *= pow(damping, duration);
+		velocity *= std::pow(damping, duration);
 
 		// Clear the accumulator
 		ClearAccumulator();
@@ -60,12 +61,12 @@ namespace Brise {
 		return inverseMass;
 	}
 
-	void Particle::AddForce(const Vec2& force) {
+	void Particle::AddForce(const Vec3& force) {
 		forceAccum += force;
 	}
 
 	void Particle::ClearAccumulator() {
-		forceAccum = { 0, 0 };
+		forceAccum = { 0, 0, 0 };
 	}
 
 	bool Particle::HasFiniteMass() {
