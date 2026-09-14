@@ -96,14 +96,24 @@ namespace Brise {
 		iterationsUsed = 0;
 
 		while (iterationsUsed < iterations) {
-			// Find contact with largest closing velocity
+			// Find contact with largest closing velocity. Ties (typically
+			// resting contacts at zero separating velocity) go to the deeper
+			// contact: the interpenetration correction is partial, so a
+			// just-resolved contact stays eligible and would otherwise win
+			// the tie again by index and starve deeper ones.
 			float max = std::numeric_limits<float>::max();
+			float maxPenetration = 0;
 			unsigned maxIndex = numContacts;
 			for (i = 0; i < numContacts; i++) {
 				float sepVel = contactArray[i].CalculateSeparatingVelocity();
+				float penetration = contactArray[i].penetration;
 
-				if (sepVel < max && (sepVel < 0 || contactArray[i].penetration > 0)) {
+				if (sepVel >= 0 && penetration <= 0) continue;
+
+				bool closerThanMax = sepVel < max || (sepVel == max && penetration > maxPenetration);
+				if (closerThanMax) {
 					max = sepVel;
+					maxPenetration = penetration;
 					maxIndex = i;
 				}
 			}

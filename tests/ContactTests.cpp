@@ -217,3 +217,47 @@ TEST_CASE("Resolving a contact updates the penetration of other contacts sharing
 	CHECK(contacts[0].penetration == doctest::Approx(0.2f));
 	CHECK(contacts[1].penetration == doctest::Approx(0.8f));
 }
+
+TEST_CASE("ParticleContactResolver prefers the deeper contact among those tied on separating velocity")
+{
+	// Two unrelated resting contacts: neither is closing, both penetrate.
+	// The shallow one comes first in the array.
+	Particle a(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
+	Particle b(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
+	a.acceleration = { 0, 0, 0 };
+	b.acceleration = { 0, 0, 0 };
+
+	std::vector<ParticleContact> contacts(2);
+	contacts[0].particle[0] = &a;
+	contacts[0].particle[1] = nullptr;
+	contacts[0].contactNormal = Vec3(0.0f, 1.0f, 0.0f);
+	contacts[0].penetration = 0.3f;
+	contacts[0].restitution = 0.0f;
+
+	contacts[1].particle[0] = &b;
+	contacts[1].particle[1] = nullptr;
+	contacts[1].contactNormal = Vec3(0.0f, 1.0f, 0.0f);
+	contacts[1].penetration = 1.0f;
+	contacts[1].restitution = 0.0f;
+
+	SUBCASE("one iteration resolves the deeper contact, not the first one")
+	{
+		Brise::ParticleContactResolver resolver(1);
+		resolver.ResolveContacts(contacts, 2, 1.0f / 60.0f);
+
+		CHECK(a.position.y == doctest::Approx(0.0f));
+		CHECK(b.position.y == doctest::Approx(0.8f));
+	}
+
+	SUBCASE("two iterations resolve both contacts instead of the shallow one twice")
+	{
+		// The deeper contact keeps 0.2 m after its resolution, less than
+		// the shallow one's 0.3 m, so the second iteration goes to the
+		// shallow contact rather than back to the deeper one.
+		Brise::ParticleContactResolver resolver(2);
+		resolver.ResolveContacts(contacts, 2, 1.0f / 60.0f);
+
+		CHECK(a.position.y == doctest::Approx(0.24f));
+		CHECK(b.position.y == doctest::Approx(0.8f));
+	}
+}
