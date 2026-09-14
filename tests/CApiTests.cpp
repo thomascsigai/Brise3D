@@ -242,6 +242,39 @@ TEST_CASE("C API: scenery contact generators enabled through the bridge")
 	world_destroy(world);
 }
 
+TEST_CASE("C API: the contact counters report the busiest step of the last world_update")
+{
+	// A particle already through the ground, rising fast: the first step
+	// still finds it penetrating (one contact, budgeted two iterations and
+	// spending both, since the interpenetration correction is partial and
+	// keeps the contact eligible); by the second step it is clear.
+	BriseWorld* world = world_create(1, 10);
+	int p = world_add_particle(world, 0.0f, 0.4f, 0.0f, 1.0f, 1.0f, 0.5f);
+	world_set_acceleration(world, p, 0.0f, 0.0f, 0.0f);
+	world_set_velocity(world, p, 0.0f, 10.0f, 0.0f);
+	world_add_ground_plane(world, 0.0f, 0.0f);
+
+	CHECK(world_last_steps(world) == 0);
+	CHECK(world_last_contacts(world) == 0);
+	CHECK(world_last_iterations_used(world) == 0);
+	CHECK(world_last_iterations(world) == 0);
+
+	world_update(world, 2.0f / 120.0f);
+	CHECK(world_last_steps(world) == 2);
+	CHECK(world_last_contacts(world) == 1);
+	CHECK(world_last_iterations_used(world) == 2);
+	CHECK(world_last_iterations(world) == 2);
+
+	// An update too short for a step reports an idle update, not stale values
+	world_update(world, 0.001f);
+	CHECK(world_last_steps(world) == 0);
+	CHECK(world_last_contacts(world) == 0);
+	CHECK(world_last_iterations_used(world) == 0);
+	CHECK(world_last_iterations(world) == 0);
+
+	world_destroy(world);
+}
+
 TEST_CASE("C API: invalid particle indices and link ids are rejected without touching the world")
 {
 	BriseWorld* world = world_create(1, 10);

@@ -1,5 +1,6 @@
 import type { Demo, DemoAction } from './demos/demo';
 import type { Loop } from './loop';
+import type { Profiler } from './profiler';
 
 export interface OverlayHandlers {
   selectDemo(index: number): void;
@@ -12,11 +13,12 @@ function element<T extends HTMLElement>(id: string): T {
   return el as T;
 }
 
-/** The controls over the canvas: demo select, Pause, x2, Reset, demo actions. */
+/** The controls over the canvas: demo select, Pause, x2, Reset, Profiler, demo actions. */
 export class Overlay {
   private readonly select = element<HTMLSelectElement>('demo');
   private readonly pause = element<HTMLButtonElement>('pause');
   private readonly fast = element<HTMLButtonElement>('fast');
+  private readonly profilerToggle = element<HTMLButtonElement>('profiler-toggle');
   private readonly actions = element<HTMLDivElement>('actions');
   private readonly hint = element<HTMLDivElement>('hint');
   private demo?: Demo;
@@ -24,6 +26,7 @@ export class Overlay {
   constructor(
     demos: Demo[],
     private readonly loop: Loop,
+    private readonly profiler: Profiler,
     handlers: OverlayHandlers,
   ) {
     demos.forEach((demo, i) => {
@@ -38,6 +41,7 @@ export class Overlay {
     });
     this.pause.addEventListener('click', () => this.togglePause());
     this.fast.addEventListener('click', () => this.toggleFast());
+    this.profilerToggle.addEventListener('click', () => this.toggleProfiler());
     element<HTMLButtonElement>('reset').addEventListener('click', handlers.reset);
     // A clicked button would otherwise keep focus and also activate on Space.
     element<HTMLDivElement>('overlay').addEventListener('click', (event) => {
@@ -58,6 +62,8 @@ export class Overlay {
         this.toggleFast();
       } else if (event.key === 'r') {
         handlers.reset();
+      } else if (event.key === 'm') {
+        this.toggleProfiler();
       } else {
         const action = this.demo?.actions?.find((action) => action.key === event.key);
         if (action) this.runAction(action);
@@ -94,5 +100,10 @@ export class Overlay {
   private toggleFast(): void {
     this.loop.toggleFast();
     this.fast.classList.toggle('active', this.loop.fast);
+  }
+
+  private toggleProfiler(): void {
+    this.profiler.toggle();
+    this.profilerToggle.classList.toggle('active', this.profiler.visible);
   }
 }

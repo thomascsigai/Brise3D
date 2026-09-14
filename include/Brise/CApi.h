@@ -64,6 +64,15 @@ BRISE_API void world_add_ground_plane(BriseWorld* world, float y, float restitut
 // updates the restitution.
 BRISE_API void world_enable_particle_collisions(BriseWorld* world, float restitution);
 
+// Steps run by the last world_update, and the counters of the busiest of
+// them (the step that generated the most contacts): contacts generated,
+// resolver iterations used and iterations budgeted. All zero after an
+// update that ran no step.
+BRISE_API int world_last_steps(const BriseWorld* world);
+BRISE_API int world_last_contacts(const BriseWorld* world);
+BRISE_API int world_last_iterations_used(const BriseWorld* world);
+BRISE_API int world_last_iterations(const BriseWorld* world);
+
 // Contiguous float[3 * count] of particle positions (x, y, z per particle),
 // refreshed by world_update and world_add_particle. The pointer is stable
 // for the life of the world, so it can be viewed as a Float32Array once.

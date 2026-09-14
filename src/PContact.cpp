@@ -91,6 +91,14 @@ namespace Brise {
 		this->iterations = iterations;
 	}
 
+	unsigned ParticleContactResolver::GetIterations() const {
+		return iterations;
+	}
+
+	unsigned ParticleContactResolver::GetIterationsUsed() const {
+		return iterationsUsed;
+	}
+
 	void ParticleContactResolver::ResolveContacts(std::vector<ParticleContact>& contactArray, unsigned numContacts, float duration) {
 		unsigned i;
 		iterationsUsed = 0;

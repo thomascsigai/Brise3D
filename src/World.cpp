@@ -12,13 +12,31 @@ namespace Brise {
 
 	void World::Update(float deltaTime) {
 		accumulator += deltaTime;
+		lastSteps = lastContacts = lastIterationsUsed = lastIterations = 0;
 
 		while (accumulator >= fixedDt)
 		{
 			Step(fixedDt);
 			accumulator -= fixedDt;
+			lastSteps++;
 		}
 
+	}
+
+	unsigned World::GetLastSteps() const {
+		return lastSteps;
+	}
+
+	unsigned World::GetLastContacts() const {
+		return lastContacts;
+	}
+
+	unsigned World::GetLastIterationsUsed() const {
+		return lastIterationsUsed;
+	}
+
+	unsigned World::GetLastIterations() const {
+		return lastIterations;
 	}
 
 	void World::Step(float fixedDt) {
@@ -39,6 +57,13 @@ namespace Brise {
 			// budget two passes over the contacts.
 			resolver.SetIterations(usedContacts * 2);
 			resolver.ResolveContacts(contacts, usedContacts, fixedDt);
+		}
+
+		// Keep the busiest step of this Update
+		if (usedContacts > lastContacts) {
+			lastContacts = usedContacts;
+			lastIterationsUsed = resolver.GetIterationsUsed();
+			lastIterations = resolver.GetIterations();
 		}
 	}
 

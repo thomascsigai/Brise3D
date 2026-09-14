@@ -18,6 +18,7 @@ export class Engine {
   private readonly fn: Record<string, WorldFn> = {};
   private world = 0;
   private worldCapacity = 0;
+  private worldMaxContacts = 0;
   private positionsView = new Float32Array(0);
   private radiiView = new Float32Array(0);
 
@@ -42,6 +43,10 @@ export class Engine {
     bind('world_remove_link', false, 2);
     bind('world_add_ground_plane', false, 3);
     bind('world_enable_particle_collisions', false, 2);
+    bind('world_last_steps', true, 1);
+    bind('world_last_contacts', true, 1);
+    bind('world_last_iterations_used', true, 1);
+    bind('world_last_iterations', true, 1);
     bind('world_positions_ptr', true, 1);
     bind('world_radii_ptr', true, 1);
   }
@@ -59,6 +64,7 @@ export class Engine {
     this.world = this.fn['world_create']!(capacity, maxContacts);
     if (this.world === 0) throw new Error(`Engine: world_create(${capacity}, ${maxContacts}) failed`);
     this.worldCapacity = capacity;
+    this.worldMaxContacts = maxContacts;
     // The positions buffer is float[3 * capacity] at a pointer that is stable
     // for the life of the world, so one view is enough.
     this.positionsView = new Float32Array(
@@ -74,6 +80,7 @@ export class Engine {
     this.call('world_destroy');
     this.world = 0;
     this.worldCapacity = 0;
+    this.worldMaxContacts = 0;
     this.positionsView = new Float32Array(0);
     this.radiiView = new Float32Array(0);
   }
@@ -151,6 +158,32 @@ export class Engine {
 
   capacity(): number {
     return this.worldCapacity;
+  }
+
+  /** The contact budget of a step, fixed at createWorld. */
+  maxContacts(): number {
+    return this.worldMaxContacts;
+  }
+
+  // Steps run by the last update, and the counters of the busiest of them
+  // (the step that generated the most contacts); all zero after an update
+  // that ran no step.
+
+  lastSteps(): number {
+    return this.call('world_last_steps');
+  }
+
+  lastContacts(): number {
+    return this.call('world_last_contacts');
+  }
+
+  lastIterationsUsed(): number {
+    return this.call('world_last_iterations_used');
+  }
+
+  /** The resolver's iteration budget for that step. */
+  lastIterations(): number {
+    return this.call('world_last_iterations');
   }
 
   /** x, y, z per particle over the whole capacity; refreshed by update. */

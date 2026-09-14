@@ -107,7 +107,7 @@ npm run build      # typecheck + static site in web/dist/, deployable as-is (rel
 
 The viewer is deployed to [GitHub Pages](https://thomascsigai.github.io/Brise3D/) on every push to `main` by [deploy.yml](.github/workflows/deploy.yml), which rebuilds the WebAssembly with Emscripten, runs the viewer tests and publishes `web/dist`; the native tests run on Linux and Windows through [ci.yml](.github/workflows/ci.yml). Neither `brise.js` nor `brise.wasm` is committed.
 
-Pick a demo from the overlay (or keys 1–0), Pause (Space), ×2 (Tab) and Reset (R); each demo adds its own actions as buttons with a key. Demos live in [web/src/demos/](web/src/demos/) and implement the `Demo` interface: `create(engine, scene)` builds a new world through the [Engine](web/src/engine.ts) wrapper, `update()` runs after every `world_update`, `dispose()` removes the demo's scenery. Reset destroys and recreates the world, since particles are never removed.
+Pick a demo from the overlay (or keys 1–0), Pause (Space), ×2 (Tab), Reset (R) and Profiler (M); each demo adds its own actions as buttons with a key. The profiler panel shows, per frame, the time spent in the engine and in the render over the frame interval (stacked graph, 0–50 ms, guide lines at 60 and 30 fps), the steps run, the particle count, and how much of the contact and resolver-iteration budgets the busiest step used. Demos live in [web/src/demos/](web/src/demos/) and implement the `Demo` interface: `create(engine, scene)` builds a new world through the [Engine](web/src/engine.ts) wrapper, `update()` runs after every `world_update`, `dispose()` removes the demo's scenery. Reset destroys and recreates the world, since particles are never removed.
 
 ### Integrate into your project
 

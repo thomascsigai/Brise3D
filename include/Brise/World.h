@@ -47,6 +47,13 @@ namespace Brise {
 		float fixedDt;
 		float accumulator = 0;
 
+		// Steps run by the last Update, and the busiest of them, for the
+		// viewer's profiler; all zero after an Update that ran no step.
+		unsigned lastSteps = 0;
+		unsigned lastContacts = 0;
+		unsigned lastIterationsUsed = 0;
+		unsigned lastIterations = 0;
+
 	public:
 
 		// The world holds at most maxParticles particles and resolves at most
@@ -60,6 +67,13 @@ namespace Brise {
 		World& operator=(const World&) = delete;
 
 		void Update(float deltaTime);
+
+		// Steps run by the last Update; contacts generated, resolver
+		// iterations used and iterations budgeted by the busiest of them.
+		unsigned GetLastSteps() const;
+		unsigned GetLastContacts() const;
+		unsigned GetLastIterationsUsed() const;
+		unsigned GetLastIterations() const;
 
 		// Returns nullptr once the world is at capacity. Particles are never
 		// removed, so the returned pointer stays valid for the life of the world.

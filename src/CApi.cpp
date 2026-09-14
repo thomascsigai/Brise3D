@@ -154,6 +154,22 @@ extern "C" {
 		world->world.EnableParticleCollisions(restitution);
 	}
 
+	int world_last_steps(const BriseWorld* world) {
+		return static_cast<int>(world->world.GetLastSteps());
+	}
+
+	int world_last_contacts(const BriseWorld* world) {
+		return static_cast<int>(world->world.GetLastContacts());
+	}
+
+	int world_last_iterations_used(const BriseWorld* world) {
+		return static_cast<int>(world->world.GetLastIterationsUsed());
+	}
+
+	int world_last_iterations(const BriseWorld* world) {
+		return static_cast<int>(world->world.GetLastIterations());
+	}
+
 	const float* world_positions_ptr(const BriseWorld* world) {
 		return world->positions.data();
 	}

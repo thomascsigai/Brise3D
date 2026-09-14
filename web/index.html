@@ -15,9 +15,21 @@
         <button id="pause">Pause</button>
         <button id="fast">×2</button>
         <button id="reset">Reset</button>
+        <button id="profiler-toggle">Profiler</button>
       </div>
       <div class="row" id="actions"></div>
       <div id="hint"></div>
+    </div>
+    <div id="profiler" hidden>
+      <canvas id="profiler-graph"></canvas>
+      <div class="legend">
+        <span class="engine">engine</span><span class="render">render</span><span class="rest">rest</span>
+        <span class="guides">lines: 60 / 30 fps</span>
+      </div>
+      <div id="profiler-timing"></div>
+      <div id="profiler-counts"></div>
+      <div class="bar" id="profiler-contacts"></div>
+      <div class="bar" id="profiler-iterations"></div>
     </div>
     <div id="status" hidden>Loading engine…</div>
     <script type="module" src="/src/main.ts"></script>

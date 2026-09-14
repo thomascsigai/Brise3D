@@ -54,6 +54,10 @@ if (EMSCRIPTEN)
 		_world_remove_link
 		_world_add_ground_plane
 		_world_enable_particle_collisions
+		_world_last_steps
+		_world_last_contacts
+		_world_last_iterations_used
+		_world_last_iterations
 		_world_positions_ptr
 		_world_radii_ptr
 	)

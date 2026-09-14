@@ -6,6 +6,7 @@ import { Engine } from './engine';
 import { loadBrise } from './load-brise';
 import { Loop } from './loop';
 import { Overlay } from './overlay';
+import { Profiler } from './profiler';
 import { ParticleSpheres } from './render';
 
 const DEFAULT_CAMERA: CameraView = { position: { x: 7, y: 5, z: 10 }, target: { x: 0, y: 2, z: 0 } };
@@ -48,6 +49,7 @@ async function main(): Promise<void> {
   resize();
 
   const loop = new Loop();
+  const profiler = new Profiler();
   let current: Demo | undefined;
   let spheres: ParticleSpheres | undefined;
 
@@ -79,7 +81,7 @@ async function main(): Promise<void> {
     camera.position.copy(view.position);
     controls.target.copy(view.target);
   };
-  const overlay = new Overlay(demos, loop, {
+  const overlay = new Overlay(demos, loop, profiler, {
     selectDemo,
     reset() {
       if (current) createDemo(current);
@@ -109,13 +111,34 @@ async function main(): Promise<void> {
   const frame = (now: number) => {
     const frameDt = (now - last) / 1000;
     last = now;
+    let engineMs = 0;
     if (current && spheres) {
+      const before = performance.now();
       engine.update(loop.advance(frameDt));
+      engineMs = performance.now() - before;
       current.update?.();
       spheres.update(engine.positions(), engine.radii(), engine.particleCount());
     }
     controls.update();
+    const before = performance.now();
     renderer.render(scene, camera);
+    const renderMs = performance.now() - before;
+    if (current) {
+      profiler.record(
+        {
+          frame: frameDt * 1000,
+          engine: engineMs,
+          render: renderMs,
+          steps: engine.lastSteps(),
+          particles: engine.particleCount(),
+          contacts: engine.lastContacts(),
+          maxContacts: engine.maxContacts(),
+          iterationsUsed: engine.lastIterationsUsed(),
+          iterations: engine.lastIterations(),
+        },
+        now,
+      );
+    }
     requestAnimationFrame(frame);
   };
 
