@@ -8,7 +8,7 @@ import { CollisionDemo } from '../src/demos/collision';
 import { CubeDemo, EDGE } from '../src/demos/cube';
 import type { Demo } from '../src/demos/demo';
 import { demos } from '../src/demos';
-import { BATCH, CAPACITY, PileDemo } from '../src/demos/pile';
+import { BATCH, CAPACITY, PileDemo, RADIUS } from '../src/demos/pile';
 import { RestingDemo } from '../src/demos/resting';
 import { RodsDemo } from '../src/demos/rods';
 import { Engine } from '../src/engine';
@@ -40,7 +40,7 @@ function action(demo: Demo, label: string): void {
 }
 
 describe('demos', () => {
-  test('the ported demos and the cloth are selectable after the first three', () => {
+  test('the ported demos and the 3D-only demos are selectable after the first three', () => {
     expect(demos.map((d) => d.name)).toEqual([
       'Particles',
       'Ballistics',
@@ -281,19 +281,19 @@ describe('Cloth', () => {
 });
 
 describe('Pile', () => {
-  test('+100 grows the pile in batches and the hint shows the count', () => {
+  test('a batch grows the pile and the hint shows the count', () => {
     const demo = new PileDemo();
     demo.create(engine, new THREE.Scene());
     expect(engine.particleCount()).toBe(BATCH);
     expect(demo.hint).toContain(`${BATCH} / ${CAPACITY} particles`);
     run(3);
     // A mound, not a single layer: some particle rests on others, more than
-    // two radii up (the engine has no friction, so this takes the funnel)
+    // two radii up (the engine has no friction; the anchored springs do this)
     const heights = Array.from({ length: BATCH }, (_, i) => position(i).y);
-    expect(Math.max(...heights)).toBeGreaterThan(0.4);
+    expect(Math.max(...heights)).toBeGreaterThan(2 * RADIUS);
     expect(Math.min(...heights)).toBeGreaterThan(0);
 
-    action(demo, '+100');
+    action(demo, `+${BATCH}`);
 
     expect(engine.particleCount()).toBe(2 * BATCH);
     expect(demo.hint).toContain(`${2 * BATCH} / ${CAPACITY} particles`);
@@ -304,7 +304,7 @@ describe('Pile', () => {
     const demo = new PileDemo();
     demo.create(engine, new THREE.Scene());
 
-    for (let i = 0; i < CAPACITY / BATCH + 1; i++) action(demo, '+100');
+    for (let i = 0; i < CAPACITY / BATCH + 1; i++) action(demo, `+${BATCH}`);
 
     expect(engine.particleCount()).toBe(CAPACITY);
     expect(demo.hint).toContain(`${CAPACITY} / ${CAPACITY} particles`);
