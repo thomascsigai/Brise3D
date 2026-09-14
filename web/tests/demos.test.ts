@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, test } from 'vitest';
 import { BridgeDemo } from '../src/demos/bridge';
 import { BuoyancyDemo, WATER_HEIGHT } from '../src/demos/buoyancy';
 import { CablesDemo } from '../src/demos/cables';
+import { ClothDemo, SIZE } from '../src/demos/cloth';
 import { CollisionDemo } from '../src/demos/collision';
 import { CubeDemo, EDGE } from '../src/demos/cube';
 import type { Demo } from '../src/demos/demo';
@@ -38,7 +39,7 @@ function action(demo: Demo, label: string): void {
 }
 
 describe('demos', () => {
-  test('the seven ported demos are selectable after the first three', () => {
+  test('the ported demos and the cloth are selectable after the first three', () => {
     expect(demos.map((d) => d.name)).toEqual([
       'Particles',
       'Ballistics',
@@ -50,6 +51,7 @@ describe('demos', () => {
       'Rods',
       'Cube',
       'Bridge',
+      'Cloth',
     ]);
   });
 
@@ -202,6 +204,76 @@ describe('Bridge', () => {
 
     const lowest = Math.min(...Array.from({ length: count }, (_, i) => position(i).y));
     expect(lowest).toBeLessThan(Math.min(...before) - 1);
+    demo.dispose();
+  });
+});
+
+describe('Cloth', () => {
+  /** The y of every particle that is not a pin. */
+  function freeHeights(): number[] {
+    return Array.from({ length: engine.particleCount() }, (_, i) => i)
+      .filter((i) => !ClothDemo.PINS.includes(i))
+      .map((i) => position(i).y);
+  }
+
+  /**
+   * Every rod within 8% of its length. The resolver holds the pinned sheet
+   * within 3% at rest and 5% for a few seconds after a gust; hanging it from
+   * two corners instead measured 10% and more, which this must catch.
+   */
+  function expectRodsToHold(): void {
+    for (const rod of ClothDemo.RODS) {
+      expect(Math.abs(distance(...rod.segment) - rod.length) / rod.length, `rod ${rod.segment}`).toBeLessThan(0.08);
+    }
+  }
+
+  test('the rods hold their lengths once the sheet hangs below its pins', () => {
+    const demo = new ClothDemo();
+    demo.create(engine, new THREE.Scene());
+
+    run(6);
+
+    expectRodsToHold();
+    const pinHeight = position(ClothDemo.PINS[0]!).y;
+    for (const y of freeHeights()) {
+      expect(y).toBeLessThan(pinHeight);
+      expect(y).toBeGreaterThan(0);
+    }
+    demo.dispose();
+  });
+
+  test('unpinning every pin drops the sheet onto the ground', () => {
+    const demo = new ClothDemo();
+    demo.create(engine, new THREE.Scene());
+    run(6);
+
+    action(demo, 'Unpin');
+    run(2);
+    // Still hanging from the other pins
+    expect(Math.max(...freeHeights())).toBeGreaterThan(1);
+
+    for (let i = 1; i < SIZE; i++) action(demo, 'Unpin');
+    run(6);
+
+    expect(Math.max(...freeHeights())).toBeLessThan(0.5);
+    expect(Math.min(...freeHeights())).toBeGreaterThan(0);
+    demo.dispose();
+  });
+
+  test('a gust swings the sheet and the rods still hold once it settles', () => {
+    const demo = new ClothDemo();
+    demo.create(engine, new THREE.Scene());
+    run(6);
+    // The far corner of the bottom row is free
+    const corner = SIZE * SIZE - 1;
+    const before = position(corner).z;
+
+    action(demo, 'Gust');
+    run(0.5);
+
+    expect(Math.abs(position(corner).z - before)).toBeGreaterThan(0.1);
+    run(4);
+    expectRodsToHold();
     demo.dispose();
   });
 });
