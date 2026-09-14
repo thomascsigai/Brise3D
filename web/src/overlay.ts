@@ -1,4 +1,4 @@
-import type { Demo } from './demos/demo';
+import type { Demo, DemoAction } from './demos/demo';
 import type { Loop } from './loop';
 
 export interface OverlayHandlers {
@@ -59,9 +59,16 @@ export class Overlay {
       } else if (event.key === 'r') {
         handlers.reset();
       } else {
-        this.demo?.actions?.find((action) => action.key === event.key)?.run();
+        const action = this.demo?.actions?.find((action) => action.key === event.key);
+        if (action) this.runAction(action);
       }
     });
+  }
+
+  /** Runs a demo action and re-reads the hint, which may describe the new state. */
+  private runAction(action: DemoAction): void {
+    action.run();
+    this.hint.textContent = this.demo?.hint ?? '';
   }
 
   showDemo(index: number, demo: Demo): void {
@@ -72,7 +79,7 @@ export class Overlay {
       ...(demo.actions ?? []).map((action) => {
         const button = document.createElement('button');
         button.textContent = action.key ? `${action.label} (${action.key.toUpperCase()})` : action.label;
-        button.addEventListener('click', () => action.run());
+        button.addEventListener('click', () => this.runAction(action));
         return button;
       }),
     );
