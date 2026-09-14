@@ -4,7 +4,9 @@
 #include <Brise/PForceGen.h>
 #include <Brise/PContact.h>
 #include <Brise/PLinks.h>
+#include <Brise/PCollision.h>
 #include <memory>
+#include <optional>
 #include <vector>
 
 namespace Brise {
@@ -33,6 +35,9 @@ namespace Brise {
 		std::vector<LinkEntry> links;
 		LinkId nextLinkId = 0;
 
+		std::vector<GroundPlane> groundPlanes;
+		std::optional<ParticleCollision> particleCollision;
+
 		ParticleContacts contacts;
 		ParticleContactResolver resolver;
 		unsigned maxContacts;
@@ -47,6 +52,12 @@ namespace Brise {
 		// The world holds at most maxParticles particles and resolves at most
 		// maxContacts contacts per step. Both are fixed for the life of the world.
 		World(size_t maxParticles, unsigned maxContacts, float fixedTimeStep = 1.0f / 120.0f);
+
+		// The contact generators point at this world's particle container,
+		// so a world can be neither copied nor moved (deleting the copy
+		// operations also suppresses the implicit move).
+		World(const World&) = delete;
+		World& operator=(const World&) = delete;
 
 		void Update(float deltaTime);
 
@@ -65,10 +76,17 @@ namespace Brise {
 		LinkId AddLink(std::unique_ptr<ParticleLink> link);
 		void RemoveLink(LinkId id);
 
+		// Keeps every particle above the plane at height y.
+		void AddGroundPlane(float y, float restitution);
+		// Off by default. Calling again only updates the restitution.
+		void EnableParticleCollisions(float restitution);
+
 	private:
 		void Step(float fixedDt);
 
 		unsigned GenerateContacts();
+		// Appends the generator's contacts at nextContact, within maxContacts.
+		void RunContactGenerator(const ParticleContactGenerator& generator, unsigned& nextContact);
 	};
 
 }

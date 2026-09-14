@@ -15,6 +15,7 @@ option(BRISE_BUILD_TESTS "Build the Brise unit tests" ON)
 add_library(
 	brise STATIC
 	src/Particle.cpp
+	src/PCollision.cpp
 	src/PContact.cpp
 	src/PForceGen.cpp
 	src/PLinks.cpp

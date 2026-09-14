@@ -14,7 +14,7 @@ namespace Brise {
         float CurrentLength() const;
 
     public:
-        virtual unsigned AddContact(ParticleContact& contact, unsigned limit) const = 0;
+        virtual unsigned AddContact(ParticleContact* contact, unsigned limit) const = 0;
     };
 
     // CABLES
@@ -28,7 +28,7 @@ namespace Brise {
     public:
         ParticleCable(Particle* a, Particle* b, float maxLength, float restitution);
 
-        virtual unsigned AddContact(ParticleContact& contact, unsigned limit) const override;
+        virtual unsigned AddContact(ParticleContact* contact, unsigned limit) const override;
     };
 
     // RODS
@@ -40,7 +40,7 @@ namespace Brise {
     public:
         ParticleRod(Particle* a, Particle* b, float length);
 
-        virtual unsigned AddContact(ParticleContact& contact, unsigned limit) const override;
+        virtual unsigned AddContact(ParticleContact* contact, unsigned limit) const override;
     };
 
 }

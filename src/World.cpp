@@ -35,7 +35,9 @@ namespace Brise {
 
 		// Process the contacts
 		if (usedContacts) {
-			resolver.SetIterations(usedContacts);
+			// Resolving one contact can wake its neighbours (a stack), so
+			// budget two passes over the contacts.
+			resolver.SetIterations(usedContacts * 2);
 			resolver.ResolveContacts(contacts, usedContacts, fixedDt);
 		}
 	}
@@ -76,22 +78,36 @@ namespace Brise {
 		std::erase_if(links, [id](const LinkEntry& entry) { return entry.id == id; });
 	}
 
+	void World::AddGroundPlane(float y, float restitution) {
+		groundPlanes.emplace_back(&particles, y, restitution);
+	}
+
+	void World::EnableParticleCollisions(float restitution) {
+		particleCollision.emplace(&particles, restitution);
+	}
+
 	unsigned World::GenerateContacts() {
-		unsigned limit = maxContacts;
 		unsigned nextContact = 0;
 
 		for (const auto& entry : links) {
-			if (nextContact >= limit)
-				break;
-
-			unsigned used = entry.link->AddContact(
-				contacts[nextContact],
-				limit - nextContact
-			);
-
-			nextContact += used;
+			RunContactGenerator(*entry.link, nextContact);
+		}
+		for (const auto& ground : groundPlanes) {
+			RunContactGenerator(ground, nextContact);
+		}
+		if (particleCollision) {
+			RunContactGenerator(*particleCollision, nextContact);
 		}
 
 		return nextContact;
+	}
+
+	void World::RunContactGenerator(const ParticleContactGenerator& generator, unsigned& nextContact) {
+		if (nextContact >= maxContacts) return;
+
+		nextContact += generator.AddContact(
+			&contacts[nextContact],
+			maxContacts - nextContact
+		);
 	}
 }

@@ -19,6 +19,11 @@ namespace Brise {
 		Vec3 contactNormal;
 		float penetration;
 
+		// How far each particle was moved by the last interpenetration
+		// resolution; the resolver uses it to update the penetration of
+		// other contacts involving the same particles.
+		Vec3 particleMovement[2];
+
 	public:
 
 		void Resolve(float duration);
@@ -50,7 +55,10 @@ namespace Brise {
 	class ParticleContactGenerator {
 	public:
 		virtual ~ParticleContactGenerator() = default;
-		virtual unsigned AddContact(ParticleContact& contact, unsigned limit) const = 0;
+
+		// Writes up to limit contacts starting at contact and returns how many
+		// were written. contact points at the first of limit free slots.
+		virtual unsigned AddContact(ParticleContact* contact, unsigned limit) const = 0;
 	};
 
 }

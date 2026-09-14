@@ -54,6 +54,9 @@ namespace Brise {
 	}
 
 	void ParticleContact::ResolveInterpenetration(float duration) {
+		particleMovement[0] = { 0, 0, 0 };
+		particleMovement[1] = { 0, 0, 0 };
+
 		// Checks if no penetration
 		if (penetration <= 0) return;
 
@@ -68,19 +71,15 @@ namespace Brise {
 		float percent = 0.8f;
 		Vec3 movePerIMass = contactNormal * ((penetration * percent) / totalInverseMass);
 
-		Vec3 particleMovement0, particleMovement1;
-		particleMovement0 = movePerIMass * particle[0]->GetInverseMass();
+		particleMovement[0] = movePerIMass * particle[0]->GetInverseMass();
 		if (particle[1]) {
-			particleMovement1 = movePerIMass * (-particle[1]->GetInverseMass());
-		}
-		else {
-			particleMovement1 = { 0, 0, 0 };
+			particleMovement[1] = movePerIMass * (-particle[1]->GetInverseMass());
 		}
 
 		// Apply penetration resolution
-		particle[0]->position += particleMovement0;
+		particle[0]->position += particleMovement[0];
 		if (particle[1]) {
-			particle[1]->position += particleMovement1;
+			particle[1]->position += particleMovement[1];
 		}
 	}
 
@@ -111,6 +110,30 @@ namespace Brise {
 
 			if (maxIndex == numContacts) break;
 			contactArray[maxIndex].Resolve(duration);
+
+			// The resolved contact moved its particles: update the penetration
+			// of every other contact those particles are involved in
+			const ParticleContact& resolved = contactArray[maxIndex];
+			for (i = 0; i < numContacts; i++) {
+				ParticleContact& c = contactArray[i];
+
+				if (c.particle[0] == resolved.particle[0]) {
+					c.penetration -= Dot(resolved.particleMovement[0], c.contactNormal);
+				}
+				else if (c.particle[0] == resolved.particle[1]) {
+					c.penetration -= Dot(resolved.particleMovement[1], c.contactNormal);
+				}
+
+				if (c.particle[1]) {
+					if (c.particle[1] == resolved.particle[0]) {
+						c.penetration += Dot(resolved.particleMovement[0], c.contactNormal);
+					}
+					else if (c.particle[1] == resolved.particle[1]) {
+						c.penetration += Dot(resolved.particleMovement[1], c.contactNormal);
+					}
+				}
+			}
+
 			iterationsUsed++;
 		}
 	}
