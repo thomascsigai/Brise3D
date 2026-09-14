@@ -96,34 +96,38 @@ namespace Brise {
 		iterationsUsed = 0;
 
 		while (iterationsUsed < iterations) {
-			// Find contact with largest closing velocity. Ties (typically
-			// resting contacts at zero separating velocity) go to the deeper
-			// contact: the interpenetration correction is partial, so a
-			// just-resolved contact stays eligible and would otherwise win
-			// the tie again by index and starve deeper ones.
-			float max = std::numeric_limits<float>::max();
-			float maxPenetration = 0;
-			unsigned maxIndex = numContacts;
+			// Find the most urgent contact: the one with the lowest
+			// separating velocity. Exact ties (typically resting contacts at
+			// zero separating velocity) go to the deeper contact: the
+			// interpenetration correction is partial, so a just-resolved
+			// contact stays eligible and would otherwise win the tie again by
+			// index and starve deeper ones. Near-ties are not ties: an
+			// epsilon here trades the starvation for extra residual velocity
+			// in resting stacks.
+			float bestSepVel = std::numeric_limits<float>::max();
+			float bestPenetration = 0;
+			unsigned bestIndex = numContacts;
 			for (i = 0; i < numContacts; i++) {
 				float sepVel = contactArray[i].CalculateSeparatingVelocity();
 				float penetration = contactArray[i].penetration;
 
 				if (sepVel >= 0 && penetration <= 0) continue;
 
-				bool closerThanMax = sepVel < max || (sepVel == max && penetration > maxPenetration);
-				if (closerThanMax) {
-					max = sepVel;
-					maxPenetration = penetration;
-					maxIndex = i;
+				bool moreUrgentThanBest = sepVel < bestSepVel
+					|| (sepVel == bestSepVel && penetration > bestPenetration);
+				if (moreUrgentThanBest) {
+					bestSepVel = sepVel;
+					bestPenetration = penetration;
+					bestIndex = i;
 				}
 			}
 
-			if (maxIndex == numContacts) break;
-			contactArray[maxIndex].Resolve(duration);
+			if (bestIndex == numContacts) break;
+			contactArray[bestIndex].Resolve(duration);
 
 			// The resolved contact moved its particles: update the penetration
 			// of every other contact those particles are involved in
-			const ParticleContact& resolved = contactArray[maxIndex];
+			const ParticleContact& resolved = contactArray[bestIndex];
 			for (i = 0; i < numContacts; i++) {
 				ParticleContact& c = contactArray[i];
 

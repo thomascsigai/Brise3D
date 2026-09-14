@@ -25,6 +25,22 @@ namespace {
 		contact.penetration = 0.0f;
 		return contact;
 	}
+
+	// A resting contact with the scenery: a sits penetration metres below
+	// a horizontal ground, neither moving nor accelerating.
+	ParticleContact GroundContact(Particle& a, float penetration)
+	{
+		a.velocity = { 0, 0, 0 };
+		a.acceleration = { 0, 0, 0 };
+
+		ParticleContact contact;
+		contact.particle[0] = &a;
+		contact.particle[1] = nullptr;
+		contact.contactNormal = Vec3(0.0f, 1.0f, 0.0f);
+		contact.restitution = 0.0f;
+		contact.penetration = penetration;
+		return contact;
+	}
 }
 
 TEST_CASE("ParticleContact::CalculateSeparatingVelocity projects the relative velocity on the 3D normal")
@@ -192,15 +208,10 @@ TEST_CASE("Resolving a contact updates the penetration of other contacts sharing
 	// a sits 1 m below the ground with b resting exactly on top of it
 	Particle a(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	Particle b(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
-	a.acceleration = { 0, 0, 0 };
 	b.acceleration = { 0, 0, 0 };
 
 	std::vector<ParticleContact> contacts(2);
-	contacts[0].particle[0] = &a;
-	contacts[0].particle[1] = nullptr;
-	contacts[0].contactNormal = Vec3(0.0f, 1.0f, 0.0f);
-	contacts[0].penetration = 1.0f;
-	contacts[0].restitution = 0.0f;
+	contacts[0] = GroundContact(a, 1.0f);
 
 	contacts[1].particle[0] = &b;
 	contacts[1].particle[1] = &a;
@@ -208,14 +219,31 @@ TEST_CASE("Resolving a contact updates the penetration of other contacts sharing
 	contacts[1].penetration = 0.0f;
 	contacts[1].restitution = 0.0f;
 
-	// One iteration: only the ground contact is penetrating, so it is the one
-	// resolved, and pushing a out of the ground pushes it into b
-	Brise::ParticleContactResolver resolver(1);
-	resolver.ResolveContacts(contacts, 2, 1.0f / 60.0f);
+	SUBCASE("one iteration resolves the ground contact and pushes a into b")
+	{
+		// Only the ground contact is penetrating, so it is the one resolved
+		Brise::ParticleContactResolver resolver(1);
+		resolver.ResolveContacts(contacts, 2, 1.0f / 60.0f);
 
-	CHECK(a.position.y == doctest::Approx(0.8f));
-	CHECK(contacts[0].penetration == doctest::Approx(0.2f));
-	CHECK(contacts[1].penetration == doctest::Approx(0.8f));
+		CHECK(a.position.y == doctest::Approx(0.8f));
+		CHECK(contacts[0].penetration == doctest::Approx(0.2f));
+		CHECK(contacts[1].penetration == doctest::Approx(0.8f));
+	}
+
+	SUBCASE("the second iteration goes to the contact the first one deepened")
+	{
+		// After the first iteration both contacts rest at zero separating
+		// velocity; the a-b contact is now deeper (0.8 m vs 0.2 m) and is
+		// resolved next, rather than the ground contact winning again by
+		// index. Equal masses: a and b each move 0.32 m.
+		Brise::ParticleContactResolver resolver(2);
+		resolver.ResolveContacts(contacts, 2, 1.0f / 60.0f);
+
+		CHECK(a.position.y == doctest::Approx(0.48f));
+		CHECK(b.position.y == doctest::Approx(0.32f));
+		CHECK(contacts[0].penetration == doctest::Approx(0.52f));
+		CHECK(contacts[1].penetration == doctest::Approx(0.16f));
+	}
 }
 
 TEST_CASE("ParticleContactResolver prefers the deeper contact among those tied on separating velocity")
@@ -224,21 +252,10 @@ TEST_CASE("ParticleContactResolver prefers the deeper contact among those tied o
 	// The shallow one comes first in the array.
 	Particle a(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
 	Particle b(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.1f);
-	a.acceleration = { 0, 0, 0 };
-	b.acceleration = { 0, 0, 0 };
 
 	std::vector<ParticleContact> contacts(2);
-	contacts[0].particle[0] = &a;
-	contacts[0].particle[1] = nullptr;
-	contacts[0].contactNormal = Vec3(0.0f, 1.0f, 0.0f);
-	contacts[0].penetration = 0.3f;
-	contacts[0].restitution = 0.0f;
-
-	contacts[1].particle[0] = &b;
-	contacts[1].particle[1] = nullptr;
-	contacts[1].contactNormal = Vec3(0.0f, 1.0f, 0.0f);
-	contacts[1].penetration = 1.0f;
-	contacts[1].restitution = 0.0f;
+	contacts[0] = GroundContact(a, 0.3f);
+	contacts[1] = GroundContact(b, 1.0f);
 
 	SUBCASE("one iteration resolves the deeper contact, not the first one")
 	{
