@@ -39,6 +39,10 @@ export class Overlay {
     this.pause.addEventListener('click', () => this.togglePause());
     this.fast.addEventListener('click', () => this.toggleFast());
     element<HTMLButtonElement>('reset').addEventListener('click', handlers.reset);
+    // A clicked button would otherwise keep focus and also activate on Space.
+    element<HTMLDivElement>('overlay').addEventListener('click', (event) => {
+      if (event.target instanceof HTMLButtonElement) event.target.blur();
+    });
 
     // Desktop shortcuts; the overlay buttons are the touch path.
     window.addEventListener('keydown', (event) => {

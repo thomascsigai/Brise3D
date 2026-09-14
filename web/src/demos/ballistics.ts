@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Engine, Vec3Like } from '../engine';
-import { disposeObject, makeGround } from '../render';
-import type { Demo, DemoAction } from './demo';
+import { disposeObject, makeGround, makeMarker } from '../render';
+import type { CameraView, Demo, DemoAction } from './demo';
 
 const CAPACITY = 64;
 const MUZZLE: Vec3Like = { x: -9, y: 1.5, z: 0 };
@@ -23,7 +23,7 @@ const LASER: Round = { mass: 0.1, radius: 0.05, velocity: { x: 100, y: 0, z: 0 }
 export class BallisticsDemo implements Demo {
   readonly name = 'Ballistics';
   readonly hint = 'Fire a round; Reset once the magazine is empty';
-  readonly camera = { position: { x: 0, y: 8, z: 22 }, target: { x: 0, y: 2, z: 0 } };
+  readonly camera: CameraView = { position: { x: 0, y: 8, z: 22 }, target: { x: 0, y: 2, z: 0 } };
   readonly actions: DemoAction[] = [
     { label: 'Pistol', key: 'p', run: () => this.fire(PISTOL) },
     { label: 'Artillery', key: 'a', run: () => this.fire(ARTILLERY) },
@@ -43,16 +43,9 @@ export class BallisticsDemo implements Demo {
 
     this.scenery = new THREE.Group();
     this.scenery.add(makeGround(40));
-    const muzzle = new THREE.Mesh(
-      new THREE.BoxGeometry(1.2, 0.4, 0.4),
-      new THREE.MeshStandardMaterial({ color: 0x8899aa }),
-    );
-    muzzle.position.set(MUZZLE.x - 0.6, MUZZLE.y, MUZZLE.z);
-    this.scenery.add(muzzle);
+    this.scenery.add(makeMarker(1.2, 0.4, 0.4, { x: MUZZLE.x - 0.6, y: MUZZLE.y, z: MUZZLE.z }));
     scene.add(this.scenery);
   }
-
-  update(): void {}
 
   dispose(): void {
     this.scene.remove(this.scenery);

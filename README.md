@@ -157,7 +157,7 @@ web/
 ├── src/
 │   ├── engine.ts   # Engine: thin wrapper over the C API, positions()/radii() views
 │   ├── loop.ts     # Frame-time policy: clamp, pause, x2
-│   ├── render.ts   # Particle spheres (InstancedMesh), link lines, ground
+│   ├── render.ts   # Particle spheres (InstancedMesh), segment lines, ground, markers
 │   ├── overlay.ts  # Demo select, Pause / x2 / Reset, demo actions, keyboard
 │   ├── main.ts     # Viewer bootstrap and frame loop
 │   └── demos/      # One file per demo

@@ -28,8 +28,6 @@ export class ParticlesDemo implements Demo {
     for (let i = 0; i < 12; i++) this.dropRandom();
   }
 
-  update(): void {}
-
   dispose(): void {
     this.scene.remove(this.ground);
     disposeObject(this.ground);

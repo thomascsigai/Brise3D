@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import type { Engine } from '../engine';
-import { LinkLines, disposeObject, makeGround, type SegmentEnd } from '../render';
+import { SegmentLines, disposeObject, makeGround, makeMarker, type SegmentEnd } from '../render';
 import type { Demo, DemoAction } from './demo';
 
 const CAPACITY = 16;
 const TOP = 5;
-const K = 15;
+const SPRING_CONSTANT = 15;
 const BOB_DAMPING = 0.9;
 const ANCHOR = { x: 0, y: TOP, z: 0 };
 
@@ -18,7 +18,7 @@ export class SpringsDemo implements Demo {
   private engine!: Engine;
   private scene!: THREE.Scene;
   private scenery = new THREE.Group();
-  private lines?: LinkLines;
+  private lines?: SegmentLines;
   private bobs: number[] = [];
 
   create(engine: Engine, scene: THREE.Scene): void {
@@ -32,32 +32,27 @@ export class SpringsDemo implements Demo {
     const pivot = engine.addParticle({ x: -3, y: TOP, z: 0 }, 0, 1, 0.15);
     const upper = engine.addParticle({ x: -3, y: TOP - 1.5, z: 0 }, 1, BOB_DAMPING, 0.2);
     const lower = engine.addParticle({ x: -3, y: TOP - 3, z: 0 }, 1, BOB_DAMPING, 0.2);
-    engine.addSpring(pivot, upper, K, 1);
-    engine.addSpring(upper, lower, K, 1);
+    engine.addSpring(pivot, upper, SPRING_CONSTANT, 1);
+    engine.addSpring(upper, lower, SPRING_CONSTANT, 1);
     segments.push([pivot, upper], [upper, lower]);
 
     // Anchored spring: the anchor is a point, not a particle
     const hanging = engine.addParticle({ x: 0, y: TOP - 2.5, z: 0 }, 1, BOB_DAMPING, 0.2);
-    engine.addAnchoredSpring(hanging, ANCHOR, K, 1);
+    engine.addAnchoredSpring(hanging, ANCHOR, SPRING_CONSTANT, 1);
     segments.push([ANCHOR, hanging]);
 
     // Bungee: slack until stretched past its rest length, then pulls back
     const hook = engine.addParticle({ x: 3, y: TOP, z: 0 }, 0, 1, 0.15);
     const jumper = engine.addParticle({ x: 3, y: TOP - 0.5, z: 0 }, 1, BOB_DAMPING, 0.2);
-    engine.addBungee(hook, jumper, K, 1.5);
+    engine.addBungee(hook, jumper, SPRING_CONSTANT, 1.5);
     segments.push([hook, jumper]);
 
     this.bobs = [upper, lower, hanging, jumper];
 
     this.scenery = new THREE.Group();
     this.scenery.add(makeGround(16));
-    const anchor = new THREE.Mesh(
-      new THREE.BoxGeometry(0.3, 0.3, 0.3),
-      new THREE.MeshStandardMaterial({ color: 0x8899aa }),
-    );
-    anchor.position.set(ANCHOR.x, ANCHOR.y, ANCHOR.z);
-    this.scenery.add(anchor);
-    this.lines = new LinkLines(segments);
+    this.scenery.add(makeMarker(0.3, 0.3, 0.3, ANCHOR));
+    this.lines = new SegmentLines(segments);
     this.scenery.add(this.lines.lines);
     scene.add(this.scenery);
   }

@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { demos } from './demos';
-import type { Demo } from './demos/demo';
+import type { CameraView, Demo } from './demos/demo';
 import { Engine } from './engine';
 import { loadBrise } from './load-brise';
 import { Loop } from './loop';
 import { Overlay } from './overlay';
 import { ParticleSpheres } from './render';
 
-const DEFAULT_CAMERA = { position: { x: 7, y: 5, z: 10 }, target: { x: 0, y: 2, z: 0 } };
+const DEFAULT_CAMERA: CameraView = { position: { x: 7, y: 5, z: 10 }, target: { x: 0, y: 2, z: 0 } };
 /** A pointer that moves less than this (px) between down and up is a pick, not an orbit. */
 const PICK_SLOP = 6;
 
@@ -65,7 +65,7 @@ async function main(): Promise<void> {
   const createDemo = (demo: Demo) => {
     disposeDemo();
     demo.create(engine, scene);
-    spheres = new ParticleSpheres(engine.getCapacity());
+    spheres = new ParticleSpheres(engine.capacity());
     scene.add(spheres.mesh);
     current = demo;
   };
@@ -111,7 +111,7 @@ async function main(): Promise<void> {
     last = now;
     if (current && spheres) {
       engine.update(loop.advance(frameDt));
-      current.update();
+      current.update?.();
       spheres.update(engine.positions(), engine.radii(), engine.particleCount());
     }
     controls.update();

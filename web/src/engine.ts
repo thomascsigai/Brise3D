@@ -17,7 +17,7 @@ type WorldFn = (...args: number[]) => number;
 export class Engine {
   private readonly fn: Record<string, WorldFn> = {};
   private world = 0;
-  private capacity = 0;
+  private worldCapacity = 0;
   private positionsView = new Float32Array(0);
   private radiiView = new Float32Array(0);
 
@@ -49,6 +49,7 @@ export class Engine {
   private call(name: string, ...args: number[]): number {
     const fn = this.fn[name];
     if (!fn) throw new Error(`Engine: ${name} is not bound`);
+    if (this.world === 0) throw new Error(`Engine: ${name} called before createWorld`);
     return fn(this.world, ...args);
   }
 
@@ -56,7 +57,8 @@ export class Engine {
   createWorld(capacity: number, maxContacts: number): void {
     this.destroyWorld();
     this.world = this.fn['world_create']!(capacity, maxContacts);
-    this.capacity = capacity;
+    if (this.world === 0) throw new Error(`Engine: world_create(${capacity}, ${maxContacts}) failed`);
+    this.worldCapacity = capacity;
     // The positions buffer is float[3 * capacity] at a pointer that is stable
     // for the life of the world, so one view is enough.
     this.positionsView = new Float32Array(
@@ -71,7 +73,7 @@ export class Engine {
     if (this.world === 0) return;
     this.call('world_destroy');
     this.world = 0;
-    this.capacity = 0;
+    this.worldCapacity = 0;
     this.positionsView = new Float32Array(0);
     this.radiiView = new Float32Array(0);
   }
@@ -147,8 +149,8 @@ export class Engine {
     return this.call('world_particle_count');
   }
 
-  getCapacity(): number {
-    return this.capacity;
+  capacity(): number {
+    return this.worldCapacity;
   }
 
   /** x, y, z per particle over the whole capacity; refreshed by update. */
