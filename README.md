@@ -1,6 +1,11 @@
 # Brise3D
 
+[![CI](https://github.com/thomascsigai/Brise3D/actions/workflows/ci.yml/badge.svg)](https://github.com/thomascsigai/Brise3D/actions/workflows/ci.yml)
+[![Deploy viewer](https://github.com/thomascsigai/Brise3D/actions/workflows/deploy.yml/badge.svg)](https://github.com/thomascsigai/Brise3D/actions/workflows/deploy.yml)
+
 A simple 3D mass-aggregate physics engine written in C++20, translated from the 2D engine [Brise](https://github.com/thomascsigai/Brise). Bodies are point masses: no rigid bodies, no rotation, no broadphase.
+
+**Live viewer: [thomascsigai.github.io/Brise3D](https://thomascsigai.github.io/Brise3D/)**
 
 The coordinate system is Y-up, right-handed, in metres.
 
@@ -99,6 +104,8 @@ npm run dev        # Vite dev server with hot reload
 npm test           # Vitest: the Engine wrapper against the real brise.wasm, and the frame loop
 npm run build      # typecheck + static site in web/dist/, deployable as-is (relative base)
 ```
+
+The viewer is deployed to [GitHub Pages](https://thomascsigai.github.io/Brise3D/) on every push to `main` by [deploy.yml](.github/workflows/deploy.yml), which rebuilds the WebAssembly with Emscripten, runs the viewer tests and publishes `web/dist`; the native tests run on Linux and Windows through [ci.yml](.github/workflows/ci.yml). Neither `brise.js` nor `brise.wasm` is committed.
 
 Pick a demo from the overlay (or keys 1–0), Pause (Space), ×2 (Tab) and Reset (R); each demo adds its own actions as buttons with a key. Demos live in [web/src/demos/](web/src/demos/) and implement the `Demo` interface: `create(engine, scene)` builds a new world through the [Engine](web/src/engine.ts) wrapper, `update()` runs after every `world_update`, `dispose()` removes the demo's scenery. Reset destroys and recreates the world, since particles are never removed.
 

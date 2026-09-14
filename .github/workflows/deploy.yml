@@ -1,0 +1,71 @@
+name: Deploy viewer
+
+# Builds the engine to WebAssembly, the viewer with Vite, and publishes
+# web/dist to GitHub Pages. No compiled .wasm is committed: it is rebuilt here.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push supersedes a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+          actions-cache-folder: emsdk-cache
+
+      # The brise_wasm target copies brise.js and brise.wasm to web/public/
+      # (POST_BUILD step in CMakeLists.txt); the tests are native only.
+      - name: Build WebAssembly
+        run: |
+          emcmake cmake -B build-wasm -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-wasm
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install viewer dependencies
+        working-directory: web
+        run: npm ci
+
+      # The Engine wrapper tests run against the brise.wasm just built.
+      - name: Test viewer
+        working-directory: web
+        run: npm test
+
+      # vite.config.ts uses a relative base, so the build works under
+      # https://<owner>.github.io/<repo>/ without knowing the repo name.
+      - name: Build viewer
+        working-directory: web
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
