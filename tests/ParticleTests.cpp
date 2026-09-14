@@ -1,5 +1,6 @@
 #include <doctest/doctest.h>
 #include <Brise/Particle.h>
+#include <limits>
 
 using Brise::Particle;
 using Brise::Vec3;

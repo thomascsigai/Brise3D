@@ -19,7 +19,7 @@ Still to come, tracked as GitHub issues: force generators, contacts and links, t
 ### Prerequisites
 
 - CMake 3.16+
-- A C++20-compatible compiler (MSVC 2019+ is the one tested; GCC 10+ / Clang 12+ should work)
+- A C++20-compatible compiler; MSVC 2019+ is the one tested (`BR_ASSERT` currently relies on the MSVC `__debugbreak` intrinsic)
 
 ### Build and test
 
@@ -71,7 +71,7 @@ include/Brise/
 ├── Particle.h      # Core particle entity
 ├── PForceGen.h     # Force generator interfaces and implementations (2D, pending translation)
 ├── PContact.h      # Contact representation and resolution (2D, pending translation)
-├── PLinks.h        # Cable and rod constraints (2D, pending translation)
+├── PLinks.h        # Cable and rod links (2D, pending translation)
 └── World.h         # Main simulation container (2D, pending translation)
 tests/              # doctest unit tests
 ```

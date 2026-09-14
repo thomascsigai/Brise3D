@@ -22,9 +22,9 @@ namespace Brise {
 
 	public:
 
-		Particle(Vec3 _pos, float mass, float damping, float radius);
+		Particle(Vec3 position, float mass, float damping, float radius);
 
-		void Integrate(float dt);
+		void Integrate(float duration);
 
 		void AddForce(const Vec3& force);
 		void ClearAccumulator();
