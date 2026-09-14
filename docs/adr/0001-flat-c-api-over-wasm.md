@@ -16,5 +16,5 @@ The viewer renders the engine with Three.js in the browser, so the C++ engine is
 
 - The `World` owns its force generators and links (the 2D engine left ownership to the caller), so the C API can create and remove them by id.
 - A world has a fixed particle capacity set at creation; particles are never removed (recreate the world instead), so indices stay stable and links never dangle.
-- Per-frame cost across the bridge is one `world_update` call plus one buffer read, regardless of particle count. Do not add per-particle accessors to the hot path.
+- Per-frame cost across the bridge is one `world_update` call, one buffer read and a handful of per-world counter reads for the profiler, regardless of particle count. Do not add per-particle accessors to the hot path.
 - Native demos disappear; doctest unit tests are the native way to exercise the engine.

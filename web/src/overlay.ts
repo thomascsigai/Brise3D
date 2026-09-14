@@ -1,16 +1,11 @@
 import type { Demo, DemoAction } from './demos/demo';
+import { element } from './dom';
 import type { Loop } from './loop';
 import type { Profiler } from './profiler';
 
 export interface OverlayHandlers {
   selectDemo(index: number): void;
   reset(): void;
-}
-
-function element<T extends HTMLElement>(id: string): T {
-  const el = document.getElementById(id);
-  if (!el) throw new Error(`Overlay: missing #${id}`);
-  return el as T;
 }
 
 /** The controls over the canvas: demo select, Pause, x2, Reset, Profiler, demo actions. */

@@ -13,6 +13,13 @@ const DEFAULT_CAMERA: CameraView = { position: { x: 7, y: 5, z: 10 }, target: { 
 /** A pointer that moves less than this (px) between down and up is a pick, not an orbit. */
 const PICK_SLOP = 6;
 
+/** Runs work and returns how long it took (ms), for the profiler. */
+function timed(work: () => void): number {
+  const before = performance.now();
+  work();
+  return performance.now() - before;
+}
+
 async function main(): Promise<void> {
   const status = document.getElementById('status') as HTMLDivElement;
   status.hidden = false;
@@ -113,16 +120,12 @@ async function main(): Promise<void> {
     last = now;
     let engineMs = 0;
     if (current && spheres) {
-      const before = performance.now();
-      engine.update(loop.advance(frameDt));
-      engineMs = performance.now() - before;
+      engineMs = timed(() => engine.update(loop.advance(frameDt)));
       current.update?.();
       spheres.update(engine.positions(), engine.radii(), engine.particleCount());
     }
     controls.update();
-    const before = performance.now();
-    renderer.render(scene, camera);
-    const renderMs = performance.now() - before;
+    const renderMs = timed(() => renderer.render(scene, camera));
     if (current) {
       profiler.record(
         {

@@ -1,5 +1,6 @@
 #include <Brise/World.h>
 
+#include <algorithm>
 #include <vector>
 
 namespace Brise {
@@ -59,11 +60,11 @@ namespace Brise {
 			resolver.ResolveContacts(contacts, usedContacts, fixedDt);
 		}
 
-		// Keep the busiest step of this Update
-		if (usedContacts > lastContacts) {
-			lastContacts = usedContacts;
-			lastIterationsUsed = resolver.GetIterationsUsed();
-			lastIterations = resolver.GetIterations();
+		// Each counter keeps its own peak over the steps of this Update
+		lastContacts = std::max(lastContacts, usedContacts);
+		if (usedContacts) {
+			lastIterationsUsed = std::max(lastIterationsUsed, resolver.GetIterationsUsed());
+			lastIterations = std::max(lastIterations, resolver.GetIterations());
 		}
 	}
 

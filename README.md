@@ -101,13 +101,13 @@ The viewer in [web/](web/) needs the WebAssembly build above (it loads `web/publ
 cd web
 npm install
 npm run dev        # Vite dev server with hot reload
-npm test           # Vitest: the Engine wrapper against the real brise.wasm, and the frame loop
+npm test           # Vitest: the Engine wrapper against the real brise.wasm, the frame loop, the profiler's series
 npm run build      # typecheck + static site in web/dist/, deployable as-is (relative base)
 ```
 
 The viewer is deployed to [GitHub Pages](https://thomascsigai.github.io/Brise3D/) on every push to `main` by [deploy.yml](.github/workflows/deploy.yml), which rebuilds the WebAssembly with Emscripten, runs the viewer tests and publishes `web/dist`; the native tests run on Linux and Windows through [ci.yml](.github/workflows/ci.yml). Neither `brise.js` nor `brise.wasm` is committed.
 
-Pick a demo from the overlay (or keys 1–0), Pause (Space), ×2 (Tab), Reset (R) and Profiler (M); each demo adds its own actions as buttons with a key. The profiler panel shows, per frame, the time spent in the engine and in the render over the frame interval (stacked graph, 0–50 ms, guide lines at 60 and 30 fps), the steps run, the particle count, and how much of the contact and resolver-iteration budgets the busiest step used. Demos live in [web/src/demos/](web/src/demos/) and implement the `Demo` interface: `create(engine, scene)` builds a new world through the [Engine](web/src/engine.ts) wrapper, `update()` runs after every `world_update`, `dispose()` removes the demo's scenery. Reset destroys and recreates the world, since particles are never removed.
+Pick a demo from the overlay (or keys 1–0), Pause (Space), ×2 (Tab), Reset (R) and Profiler (M); each demo adds its own actions as buttons with a key. The profiler panel shows, per frame, the time spent in the engine and in the render over the frame interval (stacked graph, 0–50 ms, guide lines at 60 and 30 fps), the steps run, the particle count, and the peak use of the contact and resolver-iteration budgets over those steps. Demos live in [web/src/demos/](web/src/demos/) and implement the `Demo` interface: `create(engine, scene)` builds a new world through the [Engine](web/src/engine.ts) wrapper, `update()` runs after every `world_update`, `dispose()` removes the demo's scenery. Reset destroys and recreates the world, since particles are never removed.
 
 ### Integrate into your project
 
@@ -165,7 +165,10 @@ web/
 │   ├── engine.ts   # Engine: thin wrapper over the C API, positions()/radii() views
 │   ├── loop.ts     # Frame-time policy: clamp, pause, x2
 │   ├── render.ts   # Particle spheres (InstancedMesh), segment lines, ground, markers
-│   ├── overlay.ts  # Demo select, Pause / x2 / Reset, demo actions, keyboard
+│   ├── overlay.ts  # Demo select, Pause / x2 / Reset / Profiler, demo actions, keyboard
+│   ├── profiler.ts # Profiler panel: stacked frame graph, budget bars, text
+│   ├── series.ts   # Rolling window of samples: latest, average, max
+│   ├── dom.ts      # element(): a required element by id
 │   ├── main.ts     # Viewer bootstrap and frame loop
 │   └── demos/      # One file per demo
 └── tests/          # Vitest, run under Node against the real brise.wasm

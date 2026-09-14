@@ -47,8 +47,9 @@ namespace Brise {
 		float fixedDt;
 		float accumulator = 0;
 
-		// Steps run by the last Update, and the busiest of them, for the
-		// viewer's profiler; all zero after an Update that ran no step.
+		// Steps run by the last Update and, per counter, the peak over
+		// those steps, for the viewer's profiler; all zero after an Update
+		// that ran no step.
 		unsigned lastSteps = 0;
 		unsigned lastContacts = 0;
 		unsigned lastIterationsUsed = 0;
@@ -68,8 +69,9 @@ namespace Brise {
 
 		void Update(float deltaTime);
 
-		// Steps run by the last Update; contacts generated, resolver
-		// iterations used and iterations budgeted by the busiest of them.
+		// Steps run by the last Update; the most contacts a step generated,
+		// the most resolver iterations a step used and the largest iteration
+		// budget a step was given.
 		unsigned GetLastSteps() const;
 		unsigned GetLastContacts() const;
 		unsigned GetLastIterationsUsed() const;

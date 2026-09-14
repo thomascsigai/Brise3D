@@ -183,21 +183,27 @@ describe('Engine', () => {
     expect(engine.positions()[3 * b] - engine.positions()[3 * a]).toBeCloseTo(1, 3);
   });
 
-  test('the contact counters report the busiest step of the last update', () => {
+  test('the contact counters report the peak over the steps of the last update', () => {
     engine.createWorld(4, 8);
-    // Through the ground and rising: penetrating on the first step, clear on the second
-    const p = engine.addParticle({ x: 0, y: 0.4, z: 0 }, 1, 1, 0.5);
-    engine.setAcceleration(p, { x: 0, y: 0, z: 0 });
-    engine.setVelocity(p, { x: 0, y: 10, z: 0 });
+    // One through the ground and rising (a contact on the first step only),
+    // two falling from just above it (contacts on the second step only)
+    const rising = engine.addParticle({ x: 0, y: 0.4, z: 0 }, 1, 1, 0.5);
+    engine.setAcceleration(rising, { x: 0, y: 0, z: 0 });
+    engine.setVelocity(rising, { x: 0, y: 10, z: 0 });
+    for (const x of [-2, 2]) {
+      const falling = engine.addParticle({ x, y: 0.6, z: 0 }, 1, 1, 0.5);
+      engine.setAcceleration(falling, { x: 0, y: 0, z: 0 });
+      engine.setVelocity(falling, { x: 0, y: -10, z: 0 });
+    }
     engine.addGroundPlane(0, 0);
 
     engine.update(2 / 120);
 
     expect(engine.maxContacts()).toBe(8);
     expect(engine.lastSteps()).toBe(2);
-    expect(engine.lastContacts()).toBe(1);
-    expect(engine.lastIterationsUsed()).toBe(2);
-    expect(engine.lastIterations()).toBe(2);
+    expect(engine.lastContacts()).toBe(2);
+    expect(engine.lastIterationsUsed()).toBe(4);
+    expect(engine.lastIterations()).toBe(4);
 
     engine.update(0.001);
 

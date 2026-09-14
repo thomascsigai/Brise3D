@@ -1,3 +1,4 @@
+import { element } from './dom';
 import { Series } from './series';
 
 /** What one frame cost and what the engine did in it. Times are in ms. */
@@ -25,12 +26,6 @@ export const GRAPH_MAX = 50;
 const GUIDES = [1000 / 60, 1000 / 30];
 
 const COLORS = { engine: '#f2a541', render: '#5aa9e6', rest: '#3a4250', guide: '#6b7280' };
-
-function element<T extends HTMLElement>(id: string): T {
-  const el = document.getElementById(id);
-  if (!el) throw new Error(`Profiler: missing #${id}`);
-  return el as T;
-}
 
 const ms = (series: Series) => `${series.latest.toFixed(1)} / ${series.average.toFixed(1)} / ${series.max.toFixed(1)}`;
 

@@ -242,16 +242,23 @@ TEST_CASE("C API: scenery contact generators enabled through the bridge")
 	world_destroy(world);
 }
 
-TEST_CASE("C API: the contact counters report the busiest step of the last world_update")
+TEST_CASE("C API: the contact counters report the peak over the steps of the last world_update")
 {
-	// A particle already through the ground, rising fast: the first step
-	// still finds it penetrating (one contact, budgeted two iterations and
-	// spending both, since the interpenetration correction is partial and
-	// keeps the contact eligible); by the second step it is clear.
-	BriseWorld* world = world_create(1, 10);
-	int p = world_add_particle(world, 0.0f, 0.4f, 0.0f, 1.0f, 1.0f, 0.5f);
-	world_set_acceleration(world, p, 0.0f, 0.0f, 0.0f);
-	world_set_velocity(world, p, 0.0f, 10.0f, 0.0f);
+	// One particle already through the ground and rising fast: the first
+	// step still finds it penetrating, by the second it is clear. Two more
+	// falling fast from just above the ground: clear on the first step,
+	// through it on the second. So the steps see 1 then 2 contacts; a
+	// contact is budgeted two iterations and spends both, since the
+	// interpenetration correction is partial and keeps it eligible.
+	BriseWorld* world = world_create(3, 10);
+	int rising = world_add_particle(world, 0.0f, 0.4f, 0.0f, 1.0f, 1.0f, 0.5f);
+	world_set_acceleration(world, rising, 0.0f, 0.0f, 0.0f);
+	world_set_velocity(world, rising, 0.0f, 10.0f, 0.0f);
+	for (float x : { -2.0f, 2.0f }) {
+		int falling = world_add_particle(world, x, 0.6f, 0.0f, 1.0f, 1.0f, 0.5f);
+		world_set_acceleration(world, falling, 0.0f, 0.0f, 0.0f);
+		world_set_velocity(world, falling, 0.0f, -10.0f, 0.0f);
+	}
 	world_add_ground_plane(world, 0.0f, 0.0f);
 
 	CHECK(world_last_steps(world) == 0);
@@ -261,9 +268,9 @@ TEST_CASE("C API: the contact counters report the busiest step of the last world
 
 	world_update(world, 2.0f / 120.0f);
 	CHECK(world_last_steps(world) == 2);
-	CHECK(world_last_contacts(world) == 1);
-	CHECK(world_last_iterations_used(world) == 2);
-	CHECK(world_last_iterations(world) == 2);
+	CHECK(world_last_contacts(world) == 2);
+	CHECK(world_last_iterations_used(world) == 4);
+	CHECK(world_last_iterations(world) == 4);
 
 	// An update too short for a step reports an idle update, not stale values
 	world_update(world, 0.001f);

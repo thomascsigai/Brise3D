@@ -64,10 +64,10 @@ BRISE_API void world_add_ground_plane(BriseWorld* world, float y, float restitut
 // updates the restitution.
 BRISE_API void world_enable_particle_collisions(BriseWorld* world, float restitution);
 
-// Steps run by the last world_update, and the counters of the busiest of
-// them (the step that generated the most contacts): contacts generated,
-// resolver iterations used and iterations budgeted. All zero after an
-// update that ran no step.
+// Steps run by the last world_update, and per counter the peak over those
+// steps: the most contacts a step generated, the most resolver iterations a
+// step used and the largest iteration budget a step was given. All zero
+// after an update that ran no step.
 BRISE_API int world_last_steps(const BriseWorld* world);
 BRISE_API int world_last_contacts(const BriseWorld* world);
 BRISE_API int world_last_iterations_used(const BriseWorld* world);

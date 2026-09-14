@@ -165,23 +165,26 @@ export class Engine {
     return this.worldMaxContacts;
   }
 
-  // Steps run by the last update, and the counters of the busiest of them
-  // (the step that generated the most contacts); all zero after an update
-  // that ran no step.
+  // The last update's counters, for the profiler: the steps it ran and,
+  // per counter, the peak over those steps. All zero after an update that
+  // ran no step.
 
+  /** Steps run by the last update. */
   lastSteps(): number {
     return this.call('world_last_steps');
   }
 
+  /** The most contacts a step of the last update generated. */
   lastContacts(): number {
     return this.call('world_last_contacts');
   }
 
+  /** The most resolver iterations a step of the last update used. */
   lastIterationsUsed(): number {
     return this.call('world_last_iterations_used');
   }
 
-  /** The resolver's iteration budget for that step. */
+  /** The largest iteration budget a step of the last update was given. */
   lastIterations(): number {
     return this.call('world_last_iterations');
   }
