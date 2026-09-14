@@ -17,6 +17,7 @@ add_executable(
 	ContactTests.cpp
 	WorldTests.cpp
 	CollisionTests.cpp
+	CApiTests.cpp
 )
 
 target_link_libraries(brise_tests PRIVATE brise doctest::doctest)

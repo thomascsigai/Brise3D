@@ -1,3 +1,8 @@
 out
 build
+build-wasm
 .vs
+
+# Emscripten output, rebuilt from the engine
+web/public/brise.js
+web/public/brise.wasm
